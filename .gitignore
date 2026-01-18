@@ -1,0 +1,19 @@
+﻿# VIRTUAL ENVIRONMENT
+.venv/
+venv/
+Lib/
+Scripts/
+Include/
+pyvenv.cfg
+
+# PYTHON
+__pycache__/
+*.pyc
+
+# DJANGO
+db.sqlite3
+*.log
+
+# IDE
+.idea/
+.vscode/
