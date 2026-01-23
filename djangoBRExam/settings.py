@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # My apps
     'core',
     'products',
     'orders',
@@ -57,7 +59,7 @@ ROOT_URLCONF = 'djangoBRExam.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],  # Променено!
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
