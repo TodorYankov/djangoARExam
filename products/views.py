@@ -1,8 +1,9 @@
+# products/views.py
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.db.models import Q
-from .models import Product, Category, Brand
+from .models import Product, Category
 from .forms import ProductForm, CategoryForm
 
 
@@ -26,9 +27,7 @@ class ProductListView(ListView):
             queryset = queryset.filter(product_type=product_type)
 
         # 3. Филтър по марка
-        brand_id = self.request.GET.get('brand')
-        if brand_id:
-            queryset = queryset.filter(brand_id=brand_id)
+
 
         # 4. Филтър по минимална цена
         min_price = self.request.GET.get('min_price')
@@ -74,17 +73,14 @@ class ProductListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['categories'] = Category.objects.all()
-        context['brands'] = Brand.objects.all()
         context['product_types'] = Product.PRODUCT_TYPES
 
         # Създаване на речници за бърз достъп (заместват get_item филтъра)
         context['categories_dict'] = {str(cat.id): cat.name for cat in context['categories']}
-        context['brands_dict'] = {str(brand.id): brand.name for brand in context['brands']}
 
         # Вземане на текущите филтри
         current_filters = {
             'category': self.request.GET.get('category', ''),
-            'brand': self.request.GET.get('brand', ''),
             'type': self.request.GET.get('type', ''),
             'min_price': self.request.GET.get('min_price', ''),
             'max_price': self.request.GET.get('max_price', ''),
@@ -96,7 +92,6 @@ class ProductListView(ListView):
 
         # Пряк достъп до имената за избраните филтри
         context['selected_category_name'] = context['categories_dict'].get(current_filters['category'], '')
-        context['selected_brand_name'] = context['brands_dict'].get(current_filters['brand'], '')
 
         # Изчисляване на информация за филтрите
         context['total_products'] = Product.objects.filter(is_available=True).count()
@@ -132,7 +127,7 @@ class ProductCreateView(CreateView):
     model = Product
     form_class = ProductForm
     template_name = 'products/product_form.html'
-    success_url = reverse_lazy('product_list')
+    success_url = reverse_lazy('products:product_list')
 
     def form_valid(self, form):
         # Може да се добави допълнителна логика преди запазване
@@ -149,7 +144,7 @@ class ProductUpdateView(UpdateView):
     model = Product
     form_class = ProductForm
     template_name = 'products/product_form.html'
-    success_url = reverse_lazy('product_list')
+    success_url = reverse_lazy('products:category_list')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -161,7 +156,7 @@ class ProductUpdateView(UpdateView):
 class ProductDeleteView(DeleteView):
     model = Product
     template_name = 'products/product_confirm_delete.html'
-    success_url = reverse_lazy('product_list')
+    success_url = reverse_lazy('products:category_list')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -189,7 +184,7 @@ class CategoryCreateView(CreateView):
     model = Category
     form_class = CategoryForm
     template_name = 'products/category_form.html'
-    success_url = reverse_lazy('category_list')
+    success_url = reverse_lazy('products:category_list')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -202,7 +197,7 @@ class CategoryUpdateView(UpdateView):
     model = Category
     form_class = CategoryForm
     template_name = 'products/category_form.html'
-    success_url = reverse_lazy('category_list')
+    success_url = reverse_lazy('products:category_list')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -214,7 +209,7 @@ class CategoryUpdateView(UpdateView):
 class CategoryDeleteView(DeleteView):
     model = Category
     template_name = 'products/category_confirm_delete.html'
-    success_url = reverse_lazy('category_list')
+    success_url = reverse_lazy('products:category_list')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -238,23 +233,7 @@ class CategoryDeleteView(DeleteView):
             })
         return super().post(request, *args, **kwargs)
 
-
-class BrandListView(ListView):
-    model = Brand
-    template_name = 'products/brand_list.html'
-    context_object_name = 'brands'
-    ordering = ['name']
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Всички марки'
-        # Брой продукти за всяка марка
-        for brand in context['brands']:
-            brand.product_count = Product.objects.filter(brand=brand).count()
-        return context
-
-
-# Допълнителни view-та ако са  нужни
+# Допълнителни view-та ако нужни
 def product_stats(request):
     """Статистика за продуктите"""
     total_products = Product.objects.count()
@@ -268,24 +247,6 @@ def product_stats(request):
         if count > 0:
             products_by_category[category.name] = count
 
-    # Продукти по марки
-    products_by_brand = {}
-    for brand in Brand.objects.all():
-        count = Product.objects.filter(brand=brand).count()
-        if count > 0:
-            products_by_brand[brand.name] = count
-
-    context = {
-        'total_products': total_products,
-        'available_products': available_products,
-        'out_of_stock': out_of_stock,
-        'products_by_category': products_by_category,
-        'products_by_brand': products_by_brand,
-    }
-
-    return render(request, 'products/product_stats.html', context)
-
-
 def export_products_csv(request):
     """Експорт на продукти в CSV формат"""
     import csv
@@ -297,10 +258,10 @@ def export_products_csv(request):
 
     writer = csv.writer(response)
     # Заглавен ред
-    writer.writerow(['ID', 'Име', 'Описание', 'Цена', 'Категория', 'Марка', 'Тип', 'Наличност', 'Създаден на'])
+    writer.writerow(['ID', 'Име', 'Описание', 'Цена', 'Категория', 'Тип', 'Наличност', 'Създаден на'])
 
     # Данни
-    products = Product.objects.all().select_related('category', 'brand')
+    products = Product.objects.all().select_related('category')
     for product in products:
         writer.writerow([
             product.id,
@@ -308,11 +269,11 @@ def export_products_csv(request):
             product.description[:100],  # Само първите 100 символа
             product.price,
             product.category.name if product.category else '',
-            product.brand.name if product.brand else '',
             product.get_product_type_display(),
             product.stock_quantity,
             product.created_at.strftime('%d.%m.%Y %H:%M')
         ])
 
     return response
+
 

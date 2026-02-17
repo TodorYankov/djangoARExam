@@ -85,3 +85,5 @@ class FAQView(TemplateView):
             },
         ]
         return context
+
+

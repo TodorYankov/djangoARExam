@@ -1,3 +1,4 @@
+# products/models.py
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
@@ -10,20 +11,6 @@ class Category(models.Model):
     class Meta:
         verbose_name = 'Категория'  # 👈 единично
         verbose_name_plural = 'Категории'  # 👈 множествено число
-        ordering = ['name']
-
-    def __str__(self):
-        return self.name
-
-
-class Brand(models.Model):
-    name = models.CharField(max_length=100, unique=True, verbose_name='Име на марката')
-    country = models.CharField(max_length=50, verbose_name='Държава')
-    website = models.URLField(blank=True, verbose_name='Уебсайт')
-
-    class Meta:
-        verbose_name = 'Марка'  # 👈 единично
-        verbose_name_plural = 'Марки'  # 👈 множествено число
         ordering = ['name']
 
     def __str__(self):
@@ -57,14 +44,6 @@ class Product(models.Model):
         related_name='products',
         verbose_name='Категория'
     )
-    brand = models.ForeignKey(
-        Brand,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='products',
-        verbose_name='Марка'
-    )
     product_type = models.CharField(
         max_length=20,
         choices=PRODUCT_TYPES,
@@ -84,6 +63,13 @@ class Product(models.Model):
         verbose_name='Свързани продукти'
     )
 
+    image = models.ImageField(
+        upload_to='products/',
+        blank=True,
+        null=True,
+        verbose_name='Снимка'
+    )
+
     class Meta:
         verbose_name = 'Продукт'  # 👈 единично
         verbose_name_plural = 'Продукти'  # 👈 множествено число
@@ -96,4 +82,7 @@ class Product(models.Model):
         # Автоматично актуализиране на is_available въз основа на stock_quantity
         self.is_available = self.stock_quantity > 0
         super().save(*args, **kwargs)
+
+
+
 

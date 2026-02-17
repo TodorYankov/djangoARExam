@@ -1,32 +1,21 @@
-"""
-URL configuration for djangoBRExam project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
+# urls.py (главният файл на проекта)
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
-from django.urls import path, include
 from django.conf.urls.static import static
-from core.views import home_view
+from django.urls import include, path
+
+# Не импортирам home_view директно, ще го взема от core.urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', home_view, name='home'),
+
+    # Включвам core.urls под root ('')
+    # (тогава всички core страници ще са в корена на сайта)
+    path('', include('core.urls')),
+
     path('products/', include('products.urls')),
     path('orders/', include('orders.urls')),
-    path('core/', include('core.urls')),
 ]
 
 if settings.DEBUG:
@@ -35,3 +24,6 @@ if settings.DEBUG:
 
 # Персонализирана 404 страница
 handler404 = 'core.views.custom_404'
+
+
+
