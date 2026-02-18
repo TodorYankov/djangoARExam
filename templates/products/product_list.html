@@ -1,0 +1,127 @@
+<!--product_list.html-->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Продукти - TechShop{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-4"><i class="fas fa-laptop me-2"></i>Нашите продукти</h1>
+
+        <!-- Филтри -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <select class="form-select" onchange="location = this.value;">
+                            <option value="{% url 'products:product_list' %}">Всички категории</option>
+                            {% for category in categories %}
+                                <option value="{% url 'products:product_list' %}?category={{ category.id }}"
+                                        {% if request.GET.category == category.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                            {% endfor %}  <!-- ТУК ТРЯБВА endfor -->
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select" onchange="location = this.value;">
+                            <option value="{% url 'products:product_list' %}">Всички типове</option>
+                            {% for type_code, type_name in product_types %}
+                                <option value="{% url 'products:product_list' %}?type={{ type_code }}"
+                                        {% if request.GET.type == type_code %}selected{% endif %}>
+                                    {{ type_name }}
+                                </option>
+                            {% endfor %}  <!-- ТУК ТРЯБВА endfor -->
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select" onchange="location = this.value;">
+                            <option value="{% url 'products:product_list' %}">Сортирай по...</option>
+                            <option value="{% url 'products:product_list' %}?sort=price"
+                                    {% if request.GET.sort == 'price' %}selected{% endif %}>Цена (възходяща)</option>
+                            <option value="{% url 'products:product_list' %}?sort=-price"
+                                    {% if request.GET.sort == '-price' %}selected{% endif %}>Цена (низходяща)</option>
+                            <option value="{% url 'products:product_list' %}?sort=name"
+                                    {% if request.GET.sort == 'name' %}selected{% endif %}>Име (А-Я)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Продукти -->
+<div class="row">
+    {% for product in products %}
+        <div class="col-md-4 mb-4">
+            <!-- Временно: показване директно, без include -->
+            <div class="card product-card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text">{{ product.description|truncatechars:100 }}</p>
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
+                    {% else %}
+                        <img src="{% static 'images/no-image.jpg' %}" alt="Няма снимка" class="product-img">
+                    {% endif %}
+                    <p class="product-price">{{ product.price }} €.</p>
+                    <p class="text-muted">
+                        <small>
+                            {% if product.is_available %}
+                                <span class="text-success">В наличност</span>
+                            {% else %}
+                                <span class="text-danger">Изчерпан</span>
+                            {% endif %}
+                        </small>
+                    </p>
+                    <a href="{% url 'products:product_detail' product.pk %}" class="btn btn-primary">
+                        <i class="fas fa-info-circle"></i> Детайли
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
+    {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle fa-2x mb-3"></i>
+                <h4>Няма налични продукти</h4>
+                <p>Все още няма добавени продукти в магазина.</p>
+                <a href="{% url 'products:product_create' %}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Добави първи продукт
+                </a>
+            </div>
+        </div>
+    {% endfor %}  <!-- ТУК ТРЯБВА endfor! -->
+</div>
+
+<!-- Ако имам пагинация, добавям тук -->
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Предишна</a>
+            </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Следваща</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
+
+

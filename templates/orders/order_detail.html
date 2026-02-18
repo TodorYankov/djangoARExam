@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Поръчка #{{ object.id }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h4>Поръчка №{{ object.id }}</h4>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>Клиент:</th>
+                            <td>{{ object.customer_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Имейл:</th>
+                            <td>{{ object.customer_email }}</td>
+                        </tr>
+                        <tr>
+                            <th>Телефон:</th>
+                            <td>{{ object.customer_phone }}</td>
+                        </tr>
+                        <tr>
+                            <th>Адрес:</th>
+                            <td>{{ object.address }}</td>
+                        </tr>
+                        <tr>
+                            <th>Дата:</th>
+                            <td>{{ object.created_at|date:"d.m.Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Статус:</th>
+                            <td>
+                                {% if object.is_completed %}
+                                    <span class="badge bg-success">Изпълнена</span>
+                                {% else %}
+                                    <span class="badge bg-warning">В обработка</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+
+                    <h5 class="mt-4">Продукти в поръчката</h5>
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Продукт</th>
+                                <th>Количество</th>
+                                <th>Цена</th>
+                                <th>Общо</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in object.items.all %}
+                            <tr>
+                                <td>{{ item.product.name }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ item.price_at_time|floatformat:2 }} €.</td>
+                                <td>{{ item.item_total|floatformat:2 }} €.</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center">Няма добавени продукти</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <div class="mt-3">
+                        <a href="{% url 'orders:order_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Назад
+                        </a>
+                        <a href="{% url 'orders:order_update' object.id %}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Редактирай
+                        </a>
+                        <a href="{% url 'orders:order_delete' object.id %}" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Изтрий
+                        </a>
+                        <a href="{% url 'orders:order_status_update' object.id %}" class="btn btn-info">
+                            <i class="fas fa-check-circle"></i> Промени статус
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

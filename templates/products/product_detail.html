@@ -1,0 +1,71 @@
+<!-- product_detail.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} - TechShop{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h1>{{ product.name }}</h1>
+        <p class="lead">{{ product.description }}</p>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5>Информация за продукта</h5>
+                <table class="table">
+                    <tr>
+                        <th>Цена:</th>
+                        <td class="h4 text-primary">{{ product.price }} €.</td>
+                    </tr>
+                    <tr>
+                        <th>Наличност:</th>
+                        <td>
+                            {% if product.is_available %}
+                                <span class="badge bg-success">В наличност</span>
+                            {% else %}
+                                <span class="badge bg-danger">Изчерпан</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Категория:</th>
+                        <td>{{ product.category.name }}</td>
+                    </tr>
+                </table>
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
+                {% else %}
+                    <img src="{% static 'images/no-image.jpg' %}" alt="Няма снимка" class="product-img">
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <a href="{% url 'products:product_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Назад към продуктите
+            </a>
+            <a href="{% url 'products:product_update' product.id %}" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Редактирай
+            </a>
+            <a href="{% url 'products:product_delete' product.id %}" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Изтрий
+            </a>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Бърза поръчка</h5>
+                <p class="card-text">Поръчайте този продукт сега!</p>
+                <a href="{% url 'orders:order_create' %}" class="btn btn-primary btn-lg w-100">
+                    <i class="fas fa-shopping-cart"></i> Поръчай сега
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

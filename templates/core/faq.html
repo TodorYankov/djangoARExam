@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">{{ page_title }}</h1>
+
+    <div class="accordion" id="faqAccordion">
+        {% for faq in faqs %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#faq{{ forloop.counter }}">
+                    {{ faq.question }}
+                </button>
+            </h2>
+            <div id="faq{{ forloop.counter }}"
+                 class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+                 data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    {{ faq.answer }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="mt-4">
+        <h4>Не намирате отговор на въпроса си?</h4>
+        <p>
+            Свържете се с нашия екип на
+            <a href="mailto:support@techshop.bg">support@techshop.bg</a>
+            или на телефон <strong>02 123 4567</strong>.
+        </p>
+        <a href="{% url 'core:contact' %}" class="btn btn-primary">
+            <i class="fas fa-envelope"></i> Свържете се с нас
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+

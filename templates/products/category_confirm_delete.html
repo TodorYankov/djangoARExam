@@ -1,0 +1,31 @@
+<!-- category_confirm_delete.html-->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Потвърждение за изтриване</h2>
+
+    {% if error_message %}
+        <div class="alert alert-danger">{{ error_message }}</div>
+    {% endif %}
+
+    <p>Сигурни ли сте, че искате да изтриете категория "{{ object.name }}"?</p>
+    <p class="text-danger"><strong>Това действие е необратимо.</strong></p>
+
+    {% if has_products %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            Тази категория съдържа продукти и не може да бъде изтрита.
+            Първо премахнете или преместете продуктите в друга категория.
+        </div>
+        <a href="{% url 'products:category_list' %}" class="btn btn-secondary">Обратно към категориите</a>
+    {% else %}
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Да, изтрий</button>
+            <a href="{% url 'products:category_list' %}" class="btn btn-secondary">Отказ</a>
+        </form>
+    {% endif %}
+</div>
+{% endblock %}

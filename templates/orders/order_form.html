@@ -1,0 +1,93 @@
+<!-- techShop/templates/orders/order_form.html -->
+{% extends 'base.html' %}
+
+{% block title %}Нова поръчка{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">   <!-- по-широк колона, за да побере таблицата -->
+            <div class="card">
+                <div class="card-header">
+                    <h4>Оформяне на поръчка</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <!-- Данни за контакт -->
+                        <fieldset class="mb-4">
+                            <legend>Контактни данни</legend>
+                            {{ form.as_p }}
+                        </fieldset>
+
+                        <!-- Списък с продукти (formset) -->
+                        <fieldset class="mb-4">
+                            <legend>Продукти</legend>
+                            {{ formset.management_form }}
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Продукт</th>
+                                        <th>Количество</th>
+                                        <th>Изтриване</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item_form in formset %}
+                                    <tr>
+                                        <td>{{ item_form.product }}</td>
+                                        <td>{{ item_form.quantity }}</td>
+                                        <td class="text-center">
+                                            {% if item_form.instance.pk %}
+                                                {{ item_form.DELETE }}
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <!-- Скрит шаблон за нов ред (може да се използва с JavaScript) -->
+                            <div id="empty-form" style="display: none;">
+                                <table>
+                                    <tr>
+                                        <td>{{ formset.empty_form.product }}</td>
+                                        <td>{{ formset.empty_form.quantity }}</td>
+                                        <td class="text-center"></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <!-- Бутон за добавяне на нов ред (JavaScript) -->
+                            <button type="button" id="add-more" class="btn btn-sm btn-secondary">Добави още продукти</button>
+                        </fieldset>
+
+                        <button type="submit" class="btn btn-primary w-100">Изпрати поръчка</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript за добавяне на нови редове във formset-а -->
+<!--<script>-->
+<!--    document.addEventListener('DOMContentLoaded', function() {-->
+<!--        const addButton = document.getElementById('add-more');-->
+<!--        const totalForms = document.getElementById('id_items-TOTAL_FORMS');  // id генерирано от formset prefix 'items'-->
+<!--        const formsetContainer = document.querySelector('table tbody');-->
+<!--        const emptyForm = document.getElementById('empty-form').innerHTML;-->
+
+<!--        addButton.addEventListener('click', function() {-->
+<!--            const currentForms = parseInt(totalForms.value);-->
+<!--            const newForm = emptyForm.replace(/__prefix__/g, currentForms);-->
+<!--            formsetContainer.insertAdjacentHTML('beforeend', newForm);-->
+<!--            totalForms.value = currentForms + 1;-->
+<!--        });-->
+<!--    });-->
+<!--</script>-->
+{% endblock %}
+
+
+
+
+

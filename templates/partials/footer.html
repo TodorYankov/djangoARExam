@@ -1,0 +1,100 @@
+<footer class="footer  text-white py-4 mt-5">
+    <div class="container">
+        <div class="row">
+            <!-- Колона 1: За магазина -->
+            <div class="col-md-4 mb-3">
+                <h5 class="mb-3">
+                    <i class="fas fa-laptop me-2"></i>TechShop
+                </h5>
+                <p>
+                    Вашият онлайн магазин за лаптопи, компютърна техника и аксесоари.
+                    Качество, надеждност и отлични цени.
+                </p>
+                <div class="social-icons">
+                    <a href="#" class="text-white me-3"><i class="fab fa-facebook fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-instagram fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-linkedin fa-lg"></i></a>
+                </div>
+            </div>
+
+            <!-- Колона 2: Бързи връзки -->
+            <div class="col-md-4 mb-3">
+                <h5 class="mb-3">Бързи връзки</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <a href="{% url 'products:product_list' %}" class="text-white-50">
+                            <i class="fas fa-chevron-right me-2"></i>Продукти
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="{% url 'orders:order_list' %}" class="text-white-50">
+                            <i class="fas fa-chevron-right me-2"></i>Поръчки
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="{% url 'core:about' %}" class="text-white-50">
+                            <i class="fas fa-chevron-right me-2"></i>За нас
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="{% url 'core:contact' %}" class="text-white-50">
+                            <i class="fas fa-chevron-right me-2"></i>Контакти
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'core:faq' %}" class="text-white-50">
+                            <i class="fas fa-chevron-right me-2"></i>ЧЗВ
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Колона 3: Контакти -->
+            <div class="col-md-4 mb-3">
+                <h5 class="mb-3">Контакти</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-3">
+                        <i class="fas fa-map-marker-alt me-2"></i>
+                        <span class="text-white-50">гр. София, бул. "Цариградско шосе" №1</span>
+                    </li>
+                    <li class="mb-3">
+                        <i class="fas fa-phone me-2"></i>
+                        <span class="text-white-50">02 123 4567 | 0888 123 456</span>
+                    </li>
+                    <li class="mb-3">
+                        <i class="fas fa-envelope me-2"></i>
+                        <a href="mailto:info@techshop.bg" class="text-white-50">info@techshop.bg</a>
+                    </li>
+                    <li>
+                        <i class="fas fa-clock me-2"></i>
+                        <span class="text-white-50">Пон-Пет: 9:00-18:00</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <hr class="my-4" style="border-color: #495057;">
+
+        <!-- Долна част -->
+        <div class="row">
+            <div class="col-md-6 text-center text-md-start">
+                <p class="mb-0 text-white-50">
+                    TechShop.{% now "Y" %} &copy;   Всички права запазени. УЕБ ДИЗАЙН
+                </p>
+            </div>
+            <div class="col-md-6 text-center text-md-end">
+                <a href="{% url 'core:privacy' %}" class="text-white-50 me-3">Политика за поверителност</a>
+                <a href="{% url 'core:terms' %}" class="text-white-50">Общи условия</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+
+
+
+
+
+
+

@@ -1,0 +1,50 @@
+<!-- templates/core/500.html -->
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background-color: #f8f9fa;
+        }
+        .error-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 4rem;
+            color: #dc3545;
+            margin: 0;
+        }
+        h2 {
+            color: #343a40;
+        }
+        .btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <h1>500</h1>
+        <h2>{{ page_title }}</h2>
+        <p>Възникна вътрешна грешка в сървъра.</p>
+        <p>Моля, опитайте по-късно или се свържете с администратор.</p>
+        <a href="/" class="btn">Към начална страница</a>
+    </div>
+</body>
+</html>

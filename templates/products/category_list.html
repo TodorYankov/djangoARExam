@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Категории - TechShop{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/categories.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Заглавие и бутон за нова категория -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-0">
+                <i class="fas fa-list me-2"></i>Категории на продукти
+            </h1>
+            <p class="text-muted mb-0 mt-2">Управление на категориите в TechShop</p>
+        </div>
+        <a href="{% url 'products:category_create' %}" class="btn btn-success btn-lg">
+            <i class="fas fa-plus-circle me-1"></i> Нова категория
+        </a>
+    </div>
+
+    <!-- Филтри и търсене -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-sort-amount-down"></i>
+                        </span>
+                        <select class="form-select" id="sortSelect">
+                            <option value="?sort=name" {% if request.GET.sort == 'name' %}selected{% endif %}>
+                                Сортирай по име (А-Я)
+                            </option>
+                            <option value="?sort=-name" {% if request.GET.sort == '-name' %}selected{% endif %}>
+                                Сортирай по име (Я-А)
+                            </option>
+                            <option value="?sort=-product_count" {% if request.GET.sort == '-product_count' %}selected{% endif %}>
+                                С най-много продукти
+                            </option>
+                            <option value="?sort=product_count" {% if request.GET.sort == 'product_count' %}selected{% endif %}>
+                                С най-малко продукти
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <form method="get" class="d-flex" id="searchForm">
+                        <input type="text"
+                               name="search"
+                               id="searchInput"
+                               class="form-control"
+                               placeholder="Търсене по име на категория..."
+                               value="{{ request.GET.search|default:'' }}">
+                        <button type="submit" class="btn btn-primary ms-2">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        {% if request.GET.search %}
+                        <a href="{% url 'products:product_list' %}" class="btn btn-outline-secondary ms-2" id="clearSearch">
+                            <i class="fas fa-times"></i>
+                        </a>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Информация за резултатите -->
+    {% if request.GET.search %}
+    <div class="alert alert-info mb-4">
+        <i class="fas fa-info-circle me-2"></i>
+        Намерени са <strong>{{ categories|length }}</strong> категории за:
+        "<strong>{{ request.GET.search }}</strong>"
+        <a href="{% url 'products:category_create' %}" class="float-end">Изчисти търсенето</a>
+    </div>
+    {% endif %}
+
+    <!-- Списък с категории -->
+    {% if categories %}
+    <div class="row" id="categoriesContainer">
+        {% for category in categories %}
+        <div class="col-md-4 mb-4 category-card">
+            <div class="card h-100 shadow-sm border-hover">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-folder text-primary me-2"></i>
+                            {{ category.name }}
+                        </h5>
+                        <span class="badge bg-primary rounded-pill">
+                            {{ category.products.count }}
+                        </span>
+                    </div>
+
+                    <p class="card-text text-muted">
+                        {% if category.description %}
+                            {{ category.description|truncatechars:120 }}
+                        {% else %}
+                            <span class="fst-italic">Няма описание</span>
+                        {% endif %}
+                    </p>
+
+                    <div class="mt-3">
+                        <p class="mb-1">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>
+                                Създадена: {{ category.created_at|date:"d.m.Y" }}
+                            </small>
+                        </p>
+                        <p class="mb-0">
+                            <small class="text-muted">
+                                <i class="fas fa-box me-1"></i>
+                                <!-- БЕЗ custom filter - използваме вградена логика -->
+                                {{ category.products.count }}
+                                {% with count=category.products.count %}
+                                    {% if count == 1 %}
+                                        продукт
+                                    {% elif count >= 2 and count <= 4 %}
+                                        продукта
+                                    {% else %}
+                                        продукти
+                                    {% endif %}
+                                {% endwith %}
+                            </small>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-transparent border-top-0 pt-0">
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'products:product_list' %}?category={{ category.id }}"
+                           class="btn btn-sm btn-outline-primary view-products-btn"
+                           title="Виж всички продукти в тази категория">
+                            <i class="fas fa-eye me-1"></i> Продукти
+                        </a>
+
+                        <div class="btn-group">
+                            <a href="{% url 'products:category_update' category.id %}"
+                               class="btn btn-sm btn-outline-warning edit-btn"
+                               title="Редактирай категорията">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'products:category_delete' category.id %}"
+                               class="btn btn-sm btn-outline-danger delete-btn"
+                               title="Изтрий категорията"
+                               data-category-name="{{ category.name }}">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Статистика - ПРОМЕНЕНА без custom filters -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2 text-primary"></i>
+                        Статистика за категориите
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3">
+                            <div class="p-3 bg-light rounded border">
+                                <h3 class="text-primary mb-1">{{ categories|length }}</h3>
+                                <p class="mb-0 text-muted">Общо категории</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="p-3 bg-light rounded border">
+                                <h3 class="text-success mb-1">{{ total_products }}</h3>
+                                <p class="mb-0 text-muted">Общо продукти</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="p-3 bg-light rounded border">
+                                <h3 class="text-info mb-1">
+                                    {% if categories %}
+                                        {{ total_products|floatformat:1 }}
+                                    {% else %}
+                                        0
+                                    {% endif %}
+                                </h3>
+                                <p class="mb-0 text-muted">Средно продукти/категория</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="p-3 bg-light rounded border">
+                                <h3 class="text-warning mb-1">{{ max_products }}</h3>
+                                <p class="mb-0 text-muted">Макс. продукти в категория</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Най-популярни категории - ПРОМЕНЕНА без custom filters -->
+                    {% if top_categories %}
+                    <div class="mt-4">
+                        <h6><i class="fas fa-trophy me-2 text-warning"></i>Най-популярни категории:</h6>
+                        <div class="row">
+                            {% for cat in top_categories %}
+                            <div class="col-md-4 mb-2">
+                                <div class="d-flex align-items-center p-2 bg-white rounded border">
+                                    <div class="flex-shrink-0">
+                                        <span class="badge bg-primary rounded-circle p-2">
+                                            {{ forloop.counter }}
+                                        </span>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <strong>{{ cat.name }}</strong>
+                                        <div class="progress mt-1" style="height: 5px;">
+                                            {% if total_products > 0 %}
+                                                {% widthratio cat.products.count total_products 100 as percentage %}
+                                            {% else %}
+                                                {% widthratio 0 1 100 as percentage %}
+                                            {% endif %}
+                                            <div class="progress-bar bg-success"
+                                                 style="width: {{ percentage }}%">
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">{{ cat.products.count }} продукти</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Няма категории -->
+    <div class="text-center py-5 my-5">
+        <div class="card border-0 shadow-sm mx-auto no-categories-card">
+            <div class="card-body py-5">
+                <div class="mb-4">
+                    <i class="fas fa-folder-open fa-4x text-muted"></i>
+                </div>
+                <h3 class="mb-3">Все още няма категории</h3>
+                <p class="text-muted mb-4">
+                    Категориите ви помагат да организирате продуктите и улесняват клиентите да намерят това, което търсят.
+                </p>
+                <div class="d-grid gap-2 d-md-block">
+                    <a href="{% url 'products:category_create' %}" class="btn btn-success btn-lg px-4">
+                        <i class="fas fa-plus-circle me-2"></i> Създайте първата категория
+                    </a>
+                    <a href="{% url 'products:product_list' %}" class="btn btn-outline-primary btn-lg px-4 ms-md-2 mt-2 mt-md-0">
+                        <i class="fas fa-laptop me-2"></i> Вижте всички продукти
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Навигация -->
+    <div class="mt-5 pt-4 border-top">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <a href="{% url 'products:product_list' %}" class="btn btn-outline-primary nav-btn">
+                    <i class="fas fa-laptop me-1"></i> Всички продукти
+                </a>
+                <a href="{% url 'products:category_create' %}" class="btn btn-success ms-2 nav-btn">
+                    <i class="fas fa-plus-circle me-1"></i> Нова категория
+                </a>
+            </div>
+            <div>
+                <a href="{% url 'products:product_list' %}" class="btn btn-outline-secondary nav-btn">
+                    <i class="fas fa-home me-1"></i> Начална страница
+                </a>
+                {% if user.is_staff %}
+                <a href="{% url 'admin:index' %}" class="btn btn-outline-dark ms-2 nav-btn">
+                    <i class="fas fa-cog me-1"></i> Администрация
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/scripts.js' %}"></script>
+{% endblock %}
+
+
+
+
+
+
+

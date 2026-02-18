@@ -1,0 +1,66 @@
+<!--index.html-->
+{% extends 'base.html' %}
+
+{% block title %}Начало - TechShop{% endblock %}
+
+{% block content %}
+<div class="hero-section text-center py-5 mb-5 bg-light rounded">
+    <h1 class="display-4">Добре дошли в TechShop!</h1>
+    <p class="lead">Вашият онлайн магазин за лаптопи и компютърна техника</p>
+    <a href="{% url 'products:product_list' %}" class="btn btn-primary btn-lg">
+        <i class="fas fa-laptop"></i> Разгледайте продуктите
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-shipping-fast fa-3x text-primary mb-3"></i>
+                <h3>Бърза доставка</h3>
+                <p>Доставка в рамките на 24 часа в цялата страна</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-shield-alt fa-3x text-success mb-3"></i>
+                <h3>Гаранция</h3>
+                <p>24 месеца гаранция на всички продукти</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-headset fa-3x text-warning mb-3"></i>
+                <h3>Поддръжка</h3>
+                <p>Професионална поддръжка 24/7</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Последни продукти -->
+<h2 class="mt-5 mb-4">Нови продукти</h2>
+<div class="row">
+    {% if latest_products %}
+        {% for product in latest_products %}
+            <div class="col-md-3 mb-4">
+                {% include 'partials/product_card.html' with product=product %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                Все още няма продукти. <a href="{% url 'products:product_create' %}">Добавете първия!</a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+

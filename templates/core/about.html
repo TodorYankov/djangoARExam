@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">{{ page_title }}</h1>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title">За TechShop</h3>
+                    <p class="card-text">
+                        TechShop е водещ онлайн магазин за лаптопи, компютърна техника и аксесоари в България.
+                        Създаден с цел да предостави на клиентите висококачествени продукти на конкурентни цени.
+                    </p>
+                    
+                    <h4 class="mt-4">Нашата мисия</h4>
+                    <p>
+                        Да предоставим на българския пазар най-новите технологии и иновативни решения,
+                        съчетани с отлично обслужване и надеждна поддръжка.
+                    </p>
+                    
+                    <h4 class="mt-4">Предимства</h4>
+                    <ul>
+                        <li>Широк избор от продукти</li>
+                        <li>Конкурентни цени</li>
+                        <li>Бърза доставка</li>
+                        <li>Професионална консултация</li>
+                        <li>24-месечна гаранция</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Контакти</h5>
+                    <p><i class="fas fa-map-marker-alt"></i> гр. София, бул. "Цариградско шосе" №1</p>
+                    <p><i class="fas fa-phone"></i> 02 123 4567</p>
+                    <p><i class="fas fa-envelope"></i> info@techshop.bg</p>
+                    <p><i class="fas fa-clock"></i> Пон-Пет: 9:00 - 18:00</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

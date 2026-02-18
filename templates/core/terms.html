@@ -1,0 +1,69 @@
+<!-- templates/core/terms.html -->
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Общи условия - TechShop</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Нашите CSS файлове -->
+    <link rel="stylesheet" href="{% static 'css/pages.css' %}">
+</head>
+<body>
+    <div class="terms-container">
+        <!-- Заглавие -->
+        <div class="terms-header">
+            <h1><i class="fas fa-file-contract"></i> Общи условия</h1>
+            <p class="subtitle">Правила и условия за използване на TechShop</p>
+            <p class="last-updated">Последна актуализация: 15 януари 2026 г.</p>
+        </div>
+
+        <!-- Важно бележка -->
+        <div class="important-note">
+            <h3><i class="fas fa-exclamation-triangle"></i> Важно:</h3>
+            <p>Моля, прочетете внимателно тези общи условия преди да използвате нашия уебсайт или да правите поръчки.</p>
+        </div>
+
+        <!-- Секции -->
+        <section class="terms-section">
+            <h2>Приемане на условията</h2>
+            <p>Със достъпа и използването на TechShop.bg вие приемате и се съгласявате да се придържате към тези общи условия.</p>
+        </section>
+
+        <!-- Добавете останалите секции... -->
+
+        <section class="terms-section">
+            <h2>Контактна информация</h2>
+            <div class="contact-info">
+                <p><strong>Собственик:</strong> TechShop EOOD</p>
+                <p><strong>Адрес:</strong> ул. "Технологии" №123, София</p>
+                <p><strong>Имейл:</strong> info@techshop.bg</p>
+                <p><strong>Телефон:</strong> +359 2 123 4567</p>
+            </div>
+        </section>
+
+        <!-- Бутони за навигация -->
+        <div class="navigation-buttons">
+            <a href="/" class="nav-btn btn-primary">
+                <i class="fas fa-arrow-left"></i> Обратно към сайта
+            </a>
+            <a href="{% url 'core:privacy' %}" class="nav-btn btn-secondary">
+                <i class="fas fa-shield-alt"></i> Политика за поверителност
+            </a>
+        </div>
+    </div>
+
+    <!-- Нашите JavaScript файлове -->
+    <script src="{% static 'js/scripts.js' %}"></script>
+</body>
+</html>
+
+

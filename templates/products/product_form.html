@@ -1,0 +1,244 @@
+ <!--templates/products/product_form.html-->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Редактиране{% else %}Създаване{% endif %} на продукт - TechShop{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/product_form.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-{% if form.instance.pk %}edit{% else %}plus-circle{% endif %} me-2"></i>
+                        {% if form.instance.pk %}
+                            Редактиране на продукт: {{ form.instance.name }}
+                        {% else %}
+                            Създаване на нов продукт
+                        {% endif %}
+                    </h4>
+                </div>
+
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="productForm">
+                        {% csrf_token %}
+
+                        <!-- Показване на грешки от формата -->
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                <p class="mb-1"><i class="fas fa-exclamation-circle me-1"></i> {{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <!-- Име на продукта -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.name.id_for_label }}" class="form-label">
+                                    <i class="fas fa-tag me-1"></i> {{ form.name.label }} *
+                                </label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.name.errors %}
+                                        <i class="fas fa-exclamation-triangle me-1"></i> {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                {% if form.name.help_text %}
+                                <div class="form-text">{{ form.name.help_text }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Категория -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.category.id_for_label }}" class="form-label">
+                                    <i class="fas fa-folder me-1"></i> {{ form.category.label }} *
+                                </label>
+                                {{ form.category }}
+                                {% if form.category.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.category.errors %}
+                                        <i class="fas fa-exclamation-triangle me-1"></i> {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Описание -->
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">
+                                <i class="fas fa-align-left me-1"></i> {{ form.description.label }}
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.description.errors %}
+                                    <i class="fas fa-exclamation-triangle me-1"></i> {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">Опишете подробно продукта, неговите характеристики и предимства.</div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Цена -->
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.price.id_for_label }}" class="form-label">
+                                    <i class="fas fa-money-bill-wave me-1"></i> {{ form.price.label }} *
+                                </label>
+                                <div class="input-group">
+                                    {{ form.price }}
+                                    <span class="input-group-text">€.</span>
+                                </div>
+                                {% if form.price.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.price.errors %}
+                                        <i class="fas fa-exclamation-triangle me-1"></i> {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                {% if form.price.help_text %}
+                                <div class="form-text">{{ form.price.help_text }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Наличност -->
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.stock_quantity.id_for_label }}" class="form-label">
+                                    <i class="fas fa-boxes me-1"></i> {{ form.stock_quantity.label }} *
+                                </label>
+                                {{ form.stock_quantity }}
+                                {% if form.stock_quantity.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.stock_quantity.errors %}
+                                        <i class="fas fa-exclamation-triangle me-1"></i> {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                {% if form.stock_quantity.help_text %}
+                                <div class="form-text">{{ form.stock_quantity.help_text }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Тип на продукта -->
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.product_type.id_for_label }}" class="form-label">
+                                    <i class="fas fa-laptop me-1"></i> {{ form.product_type.label }}
+                                </label>
+                                {{ form.product_type }}
+                                {% if form.product_type.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.product_type.errors %}
+                                        <i class="fas fa-exclamation-triangle me-1"></i> {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                        <!-- Организатор -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.organizer.id_for_label }}" class="form-label">
+                               <i class="fas fa-user-tie me-1"></i> Организатор
+                            </label>
+                            {{ form.organizer }}
+                            {% if form.organizer.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.organizer.errors %}
+                                    <i class="fas fa-exclamation-triangle me-1"></i> {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Снимка -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.image.id_for_label }}" class="form-label">
+                               <i class="fas fa-image me-1"></i> {{ form.image.label }}
+                            </label>
+                            {% if form.instance.pk and form.instance.image %}
+                                <div class="mb-2">
+                                    <img src="{{ form.instance.image.url }}" alt="Текуща снимка" class="img-thumbnail" style="max-height: 100px;">
+                                </div>
+                            {% endif %}
+                            {{ form.image }}
+                            {% if form.image.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.image.errors %}
+                                   <i class="fas fa-exclamation-triangle me-1"></i> {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">Качете снимка на продукта (JPEG, PNG).</div>
+                        </div>
+                    </div>
+
+                        <!-- Read-only поле (пример) -->
+                        {% if form.instance.pk %}
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-calendar-plus me-1"></i> Дата на създаване
+                            </label>
+                            <input type="text" class="form-control readonly-field"
+                                   value="{{ form.instance.created_at|date:'d.m.Y H:i' }}"
+                                   readonly>
+                            <div class="form-text">Това поле е само за преглед и не може да се редактира.</div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Бутони -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'products:product_list' %}" class="btn btn-outline-secondary cancel-btn">
+                                <i class="fas fa-times me-1"></i> Отказ
+                            </a>
+                            <div>
+                                <button type="submit" class="btn btn-success submit-btn">
+                                    <i class="fas fa-save me-1"></i>
+                                    {% if form.instance.pk %}
+                                        Запази промените
+                                    {% else %}
+                                        Създай продукт
+                                    {% endif %}
+                                </button>
+                                {% if form.instance.pk %}
+                                <a href="{% url 'products:product_delete' form.instance.pk %}" class="btn btn-outline-danger ms-2 delete-btn">
+                                    <i class="fas fa-trash me-1"></i> Изтрий
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Помощна информация -->
+            <div class="card mt-3 border-info help-card">
+                <div class="card-body">
+                    <h6 class="card-title text-info">
+                        <i class="fas fa-lightbulb me-2"></i>Съвети за попълване:
+                    </h6>
+                    <ul class="mb-0 tips-list">
+                        <li>Цената трябва да е положително число</li>
+                        <li>Наличността не може да е отрицателна</li>
+                        <li>Маркираните с * полета са задължителни</li>
+                        <li>Детайлното описание помага на клиентите</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/scripts.js' %}"></script>
+{% endblock %}

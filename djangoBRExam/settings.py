@@ -62,7 +62,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'techShop.urls'
+ROOT_URLCONF = 'djangoBRExam.urls'
 
 TEMPLATES = [
     {
@@ -85,7 +85,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'techShop.wsgi.application'
+WSGI_APPLICATION = 'djangoBRExam.wsgi.application'
 
 
 # Database
@@ -155,7 +155,7 @@ import locale
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',  # D:\techShop\static
+    BASE_DIR / 'static',   
 ]
 
 # За медийни файлове (картинки на продукти)
