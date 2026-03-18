@@ -1,3 +1,4 @@
+<!-- navbar.html -->
 <nav class="navbar navbar-expand-lg horizontal-menu">
     <div class="container-fluid">
         <a class="navbar-brand fw-bold" href="{% url 'core:home' %}" style="color: var(--primary-color);">
@@ -60,60 +61,65 @@
                     </ul>
                 </li>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#aboutModal">
-                        <i class="fas fa-info-circle"></i> За нас
-                    </a>
-                </li>
                 <li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-        <i class="fas fa-info-circle"></i> Информация
-    </a>
-    <ul class="dropdown-menu">
-        <li>
-            <a class="dropdown-item" href="{% url 'core:about' %}">
-                <i class="fas fa-building"></i> За нас
-            </a>
-        </li>
-        <li>
-            <a class="dropdown-item" href="{% url 'core:contact' %}">
-                <i class="fas fa-envelope"></i> Контакти
-            </a>
-        </li>
-        <li>
-            <a class="dropdown-item" href="{% url 'core:faq' %}">
-                <i class="fas fa-question-circle"></i> ЧЗВ
-            </a>
-        </li>
-        <li><hr class="dropdown-divider"></li>
-        <li>
-            <a class="dropdown-item" href="{% url 'core:privacy' %}">
-                <i class="fas fa-shield-alt"></i> Поверителност
-            </a>
-        </li>
-        <li>
-            <a class="dropdown-item" href="{% url 'core:terms' %}">
-                <i class="fas fa-file-contract"></i> Общи условия
-            </a>
-        </li>
-    </ul>
-</li>
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-info-circle"></i> Информация
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item" href="{% url 'core:about' %}">
+                                <i class="fas fa-building"></i> За нас
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'core:contact' %}">
+                                <i class="fas fa-envelope"></i> Контакти
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'core:faq' %}">
+                                <i class="fas fa-question-circle"></i> ЧЗВ
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'core:privacy' %}">
+                                <i class="fas fa-shield-alt"></i> Поверителност
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'core:terms' %}">
+                                <i class="fas fa-file-contract"></i> Общи условия
+                            </a>
+                        </li>
+                    </ul>
+                </li>
             </ul>
 
-            <!-- Търсене -->
-            <form class="d-flex" method="get" action="{% url 'products:product_list' %}">
-                <input class="form-control me-2" type="search"
-                       name="search" placeholder="Търсене..."
-                       value="{{ request.GET.search }}">
-                <button class="btn btn-tech" type="submit">
-                    <i class="fas fa-search"></i>
-                </button>
-            </form>
+            <!-- Премахната е формата за търсене от тук! -->
         </div>
     </div>
 </nav>
 
-<!--  Модален прозорец"За нас" -->
+<!-- Търсачка на отделен ред ПОД навигацията -->
+<div class="bg-light py-3 border-bottom">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <form class="d-flex" method="get" action="{% url 'products:product_list' %}">
+                    <input class="form-control me-2" type="search"
+                           name="search" placeholder="Търсене по марка, модел или спецификации..."
+                           value="{{ request.GET.search }}">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search me-2"></i>Търси
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модален прозорец "За нас" -->
 <div class="modal fade" id="aboutModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">

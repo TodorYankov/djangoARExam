@@ -1,10 +1,89 @@
 # products/views.py
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.urls import reverse_lazy
 from django.db.models import Q
+from django.urls import reverse_lazy
 from .models import Product, Category
 from .forms import ProductForm, CategoryForm
+
+
+def product_create(request):
+    # Проверка за категории
+    categories_exist = Category.objects.exists()
+
+    # АКО НЯМА КАТЕГОРИИ И ТОВА Е GET ЗАЯВКА - показваме предупреждение
+    if not categories_exist and request.method == 'GET':
+        messages.warning(request, '⚠️ ВНИМАНИЕ: Няма създадени категории! Първо трябва да създадете категория.')
+
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            product = form.save()
+            messages.success(request, 'Продуктът е създаден успешно!')
+            return redirect('products:product_detail', pk=product.pk)
+    else:
+        form = ProductForm()
+
+    context = {
+        'form': form,
+        'no_categories': not categories_exist,
+        'categories_exist': categories_exist,
+        'title': 'Създаване на нов продукт',
+        'submit_text': 'Създай продукт',
+    }
+    return render(request, 'products/product_form.html', context)
+
+
+def product_update(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    categories_exist = Category.objects.exists()
+
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES, instance=product)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Продуктът е обновен успешно!')
+            return redirect('products:product_detail', pk=product.pk)
+    else:
+        form = ProductForm(instance=product)
+
+    context = {
+        'form': form,
+        'product': product,
+        'no_categories': not categories_exist,
+        'categories_exist': categories_exist,
+        'title': f'Редактиране на {product.name}',
+        'submit_text': 'Запази промените',
+    }
+    return render(request, 'products/product_form.html', context)
+
+
+def edit_product(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    categories_exist = Category.objects.exists()
+
+    if product.stock_quantity == 0:
+        messages.warning(request, 'Продукт с 0 наличност е маркиран като изчерпан')
+
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES, instance=product)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Продуктът беше успешно обновен')
+            return redirect('products:product_detail', pk=product.pk)
+    else:
+        form = ProductForm(instance=product)
+
+    return render(request, 'products/product_form.html', {
+        'form': form,
+        'product': product,
+        'no_categories': not categories_exist,
+        'categories_exist': categories_exist,
+        'title': f'Редактиране на {product.name}',
+        'submit_text': 'Запази промените',
+    })
 
 
 class ProductListView(ListView):
@@ -28,14 +107,13 @@ class ProductListView(ListView):
 
         # 3. Филтър по марка
 
-
         # 4. Филтър по минимална цена
         min_price = self.request.GET.get('min_price')
         if min_price:
             try:
                 queryset = queryset.filter(price__gte=float(min_price))
             except (ValueError, TypeError):
-                pass  # Игнорираме грешни стойности
+                pass
 
         # 5. Филтър по максимална цена
         max_price = self.request.GET.get('max_price')
@@ -43,7 +121,7 @@ class ProductListView(ListView):
             try:
                 queryset = queryset.filter(price__lte=float(max_price))
             except (ValueError, TypeError):
-                pass  # Игнорираме грешни стойности
+                pass
 
         # 6. Филтър по наличност
         in_stock = self.request.GET.get('in_stock')
@@ -58,7 +136,6 @@ class ProductListView(ListView):
             queryset = queryset.filter(
                 Q(name__icontains=search_query) |
                 Q(description__icontains=search_query) |
-                Q(brand__name__icontains=search_query) |
                 Q(category__name__icontains=search_query)
             )
 
@@ -75,7 +152,7 @@ class ProductListView(ListView):
         context['categories'] = Category.objects.all()
         context['product_types'] = Product.PRODUCT_TYPES
 
-        # Създаване на речници за бърз достъп (заместват get_item филтъра)
+        # Създаване на речници за бърз достъп
         context['categories_dict'] = {str(cat.id): cat.name for cat in context['categories']}
 
         # Вземане на текущите филтри
@@ -129,40 +206,63 @@ class ProductCreateView(CreateView):
     template_name = 'products/product_form.html'
     success_url = reverse_lazy('products:product_list')
 
-    def form_valid(self, form):
-        # Може да се добави допълнителна логика преди запазване
-        return super().form_valid(form)
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        categories_exist = Category.objects.exists()
         context['title'] = 'Добавяне на нов продукт'
         context['submit_text'] = 'Създай продукт'
+        context['no_categories'] = not categories_exist
+        context['categories_exist'] = categories_exist
+
+        # Добавяне на предупреждение
+        if not categories_exist:
+            messages.warning(self.request,
+                             '⚠️ ВНИМАНИЕ: Няма създадени категории! Първо трябва да създадете категория.')
+
         return context
+
+    def form_valid(self, form):
+        if not Category.objects.exists():
+            messages.error(self.request, '❌ Не можете да създадете продукт без категория!')
+            return redirect('products:product_create')
+
+        response = super().form_valid(form)
+        messages.success(self.request, f'Продукт "{self.object.name}" беше създаден успешно')
+        return response
 
 
 class ProductUpdateView(UpdateView):
     model = Product
     form_class = ProductForm
     template_name = 'products/product_form.html'
-    success_url = reverse_lazy('products:category_list')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        categories_exist = Category.objects.exists()
         context['title'] = f'Редактиране на "{self.object.name}"'
         context['submit_text'] = 'Запази промените'
+        context['no_categories'] = not categories_exist
+        context['categories_exist'] = categories_exist
         return context
+
+    def get_success_url(self):
+        messages.success(self.request, f'Продукт "{self.object.name}" беше обновен успешно')
+        return reverse_lazy('products:product_detail', kwargs={'pk': self.object.pk})
 
 
 class ProductDeleteView(DeleteView):
     model = Product
     template_name = 'products/product_confirm_delete.html'
-    success_url = reverse_lazy('products:category_list')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = f"Изтриване на продукт"
         context['object_name'] = self.object.name
         return context
+
+    def get_success_url(self):
+        messages.success(self.request, 'Продуктът беше изтрит успешно')
+        return reverse_lazy('products:product_list')
 
 
 class CategoryListView(ListView):
@@ -233,7 +333,7 @@ class CategoryDeleteView(DeleteView):
             })
         return super().post(request, *args, **kwargs)
 
-# Допълнителни view-та ако нужни
+
 def product_stats(request):
     """Статистика за продуктите"""
     total_products = Product.objects.count()
@@ -246,6 +346,7 @@ def product_stats(request):
         count = Product.objects.filter(category=category).count()
         if count > 0:
             products_by_category[category.name] = count
+
 
 def export_products_csv(request):
     """Експорт на продукти в CSV формат"""
@@ -275,5 +376,4 @@ def export_products_csv(request):
         ])
 
     return response
-
 

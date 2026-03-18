@@ -1,18 +1,19 @@
 <!-- techShop/templates/orders/order_form.html -->
 {% extends 'base.html' %}
+{% load static %}  <!-- 👈 ТОВА ЛИПСВАШЕ! -->
 
 {% block title %}Нова поръчка{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
     <div class="row">
-        <div class="col-md-8 offset-md-2">   <!-- по-широк колона, за да побере таблицата -->
+        <div class="col-md-8 offset-md-2">
             <div class="card">
                 <div class="card-header">
                     <h4>Оформяне на поръчка</h4>
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" id="orderForm">
                         {% csrf_token %}
 
                         <!-- Данни за контакт -->
@@ -25,40 +26,55 @@
                         <fieldset class="mb-4">
                             <legend>Продукти</legend>
                             {{ formset.management_form }}
-                            <table class="table table-bordered">
+
+                            <table class="table table-bordered" id="item-formset">
                                 <thead>
                                     <tr>
                                         <th>Продукт</th>
                                         <th>Количество</th>
-                                        <th>Изтриване</th>
+                                        <th>Действие</th>  <!-- 👈 Променено от "Изтриване" -->
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for item_form in formset %}
-                                    <tr>
+                                    <tr class="formset-row">
                                         <td>{{ item_form.product }}</td>
                                         <td>{{ item_form.quantity }}</td>
                                         <td class="text-center">
                                             {% if item_form.instance.pk %}
                                                 {{ item_form.DELETE }}
+                                                <label for="{{ item_form.DELETE.id_for_label }}" class="text-danger">Изтрий</label>
+                                            {% else %}
+                                                <!-- Бутон за изтриване за нови редове -->
+                                                <button type="button" class="btn btn-sm btn-danger delete-row">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
                                             {% endif %}
                                         </td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
-                            <!-- Скрит шаблон за нов ред (може да се използва с JavaScript) -->
-                            <div id="empty-form" style="display: none;">
+
+                            <!-- Скрит шаблон за нов ред (JavaScript) -->
+                            <div id="empty-form-template" style="display: none;">  <!-- 👈 Променено id -->
                                 <table>
-                                    <tr>
+                                    <tr class="formset-row">
                                         <td>{{ formset.empty_form.product }}</td>
                                         <td>{{ formset.empty_form.quantity }}</td>
-                                        <td class="text-center"></td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-sm btn-danger delete-row">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
                                     </tr>
                                 </table>
                             </div>
-                            <!-- Бутон за добавяне на нов ред (JavaScript) -->
-                            <button type="button" id="add-more" class="btn btn-sm btn-secondary">Добави още продукти</button>
+
+                            <!-- Бутон за добавяне на нов ред -->
+                            <button type="button" id="add-item" class="btn btn-sm btn-secondary mt-2">  <!-- 👈 Променено id -->
+                                <i class="fas fa-plus"></i> Добави още продукти
+                            </button>
                         </fieldset>
 
                         <button type="submit" class="btn btn-primary w-100">Изпрати поръчка</button>
@@ -68,26 +84,96 @@
         </div>
     </div>
 </div>
-
-<!-- JavaScript за добавяне на нови редове във formset-а -->
-<!--<script>-->
-<!--    document.addEventListener('DOMContentLoaded', function() {-->
-<!--        const addButton = document.getElementById('add-more');-->
-<!--        const totalForms = document.getElementById('id_items-TOTAL_FORMS');  // id генерирано от formset prefix 'items'-->
-<!--        const formsetContainer = document.querySelector('table tbody');-->
-<!--        const emptyForm = document.getElementById('empty-form').innerHTML;-->
-
-<!--        addButton.addEventListener('click', function() {-->
-<!--            const currentForms = parseInt(totalForms.value);-->
-<!--            const newForm = emptyForm.replace(/__prefix__/g, currentForms);-->
-<!--            formsetContainer.insertAdjacentHTML('beforeend', newForm);-->
-<!--            totalForms.value = currentForms + 1;-->
-<!--        });-->
-<!--    });-->
-<!--</script>-->
 {% endblock %}
 
+{% block extra_js %}
+<!-- Тестов JavaScript -->
+<script>
+    console.log('Директен JavaScript работи!');
+    // alert('Директен JavaScript работи!');  // Коментирано, за да не дразни
+</script>
 
+<!-- Външен JavaScript файл -->
+<script src="{% static 'js/order_form.js' %}"></script>
+
+<!-- Добавъчен JavaScript за гаранция -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM зареден - inline fallback');
+
+        const addButton = document.getElementById('add-item');
+        if (addButton) {
+            console.log('Бутон намерен в inline fallback');
+
+            addButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('Бутон натиснат - inline fallback');
+
+                const totalForms = document.getElementById('id_items-TOTAL_FORMS');
+                const tbody = document.querySelector('#item-formset tbody');
+                const emptyTemplate = document.getElementById('empty-form-template');
+
+                if (!totalForms || !tbody || !emptyTemplate) {
+                    alert('Грешка: Не могат да се намерят необходимите елементи!');
+                    return;
+                }
+
+                const formCount = parseInt(totalForms.value);
+                console.log('Текущ брой форми:', formCount);
+
+                // Клониране на шаблона
+                const newRow = emptyTemplate.cloneNode(true);
+                newRow.id = '';
+                newRow.style.display = '';
+
+                // Замяна на __prefix__
+                let html = newRow.innerHTML;
+                html = html.replace(/__prefix__/g, formCount);
+                newRow.innerHTML = html;
+
+                // Добавяне на новия ред
+                const newTr = newRow.querySelector('tr');
+                tbody.appendChild(newTr);
+
+                // Добавяне на event listener за бутона за изтриване
+                const deleteBtn = newTr.querySelector('.delete-row');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const row = e.target.closest('tr');
+                        if (row) {
+                            row.remove();
+                            totalForms.value = tbody.children.length;
+                        }
+                    });
+                }
+
+                // Актуализиране на броя
+                totalForms.value = formCount + 1;
+                console.log('Нов брой форми:', totalForms.value);
+            });
+        } else {
+            console.error('Бутон с id="add-item" не е намерен!');
+        }
+
+        // Добавяне на event listeners за съществуващите бутони за изтриване
+        document.querySelectorAll('.delete-row').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const row = e.target.closest('tr');
+                if (row) {
+                    row.remove();
+                    const totalForms = document.getElementById('id_items-TOTAL_FORMS');
+                    const tbody = document.querySelector('#item-formset tbody');
+                    if (totalForms && tbody) {
+                        totalForms.value = tbody.children.length;
+                    }
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
 
 
 

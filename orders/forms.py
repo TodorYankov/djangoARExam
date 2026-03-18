@@ -1,6 +1,6 @@
 # orders/forms.py
 from django import forms
-from django.forms import inlineformset_factory  # 👈 добавен импорт
+from django.forms import inlineformset_factory
 from .models import Order, OrderItem
 
 # ──────────────────────────────────────
@@ -9,20 +9,20 @@ from .models import Order, OrderItem
 class OrderForm(forms.ModelForm):
     class Meta:
         model = Order
-        fields = ['customer_name', 'customer_email', 'customer_phone', 'address', 'is_completed']
+        fields = ['customer_name', 'customer_email', 'customer_phone', 'address', 'status']
         widgets = {
             'customer_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Име'}),
             'customer_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'имейл@пример.com'}),
             'customer_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '0888 123 456'}),
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Адрес'}),
-            'is_completed': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),  # 👈 добавете това
         }
         labels = {
             'customer_name': 'Име',
             'customer_email': 'Имейл',
             'customer_phone': 'Телефон',
             'address': 'Адрес',
-            'is_completed': 'Изпълнена',
+            'status': 'Статус',  # 👈 променено от is_completed
         }
 
 class OrderCreateForm(forms.ModelForm):
@@ -43,15 +43,31 @@ class OrderCreateForm(forms.ModelForm):
         }
 
 class OrderStatusForm(forms.ModelForm):
+    # Създаваме поле, което не е свързано директно с модела
+    is_completed = forms.BooleanField(
+        required=False,
+        label='Поръчката е изпълнена',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+
     class Meta:
         model = Order
-        fields = ['is_completed']
-        widgets = {
-            'is_completed': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        }
-        labels = {
-            'is_completed': 'Поръчката е изпълнена',
-        }
+        fields = ['status']  # само status, без is_completed
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            # Задаваме началната стойност от property-то
+            self.fields['is_completed'].initial = self.instance.is_completed
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        # Ако is_completed е отметнато, сменяме статуса на 'completed'
+        if self.cleaned_data.get('is_completed'):
+            instance.status = 'completed'
+        if commit:
+            instance.save()
+        return instance
 
 # ──────────────────────────────────────
 # Форма за артикул
@@ -75,7 +91,7 @@ class OrderItemForm(forms.ModelForm):
 OrderItemFormSet = inlineformset_factory(
     Order,
     OrderItem,
-    form=OrderItemForm,      # използва готовата форма
+    form=OrderItemForm,
     extra=1,
     can_delete=True,
 )

@@ -5,11 +5,17 @@
 {% block title %}Продукти - TechShop{% endblock %}
 
 {% block content %}
+<!-- Заглавие и бутон за добавяне -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-laptop me-2"></i>Нашите продукти</h1>
+    <a href="{% url 'products:product_create' %}" class="btn btn-success">
+        <i class="fas fa-plus-circle me-1"></i> Добави нов продукт
+    </a>
+</div>
+
+<!-- Филтри -->
 <div class="row mb-4">
     <div class="col-md-12">
-        <h1 class="mb-4"><i class="fas fa-laptop me-2"></i>Нашите продукти</h1>
-
-        <!-- Филтри -->
         <div class="card mb-4">
             <div class="card-body">
                 <div class="row">
@@ -21,7 +27,7 @@
                                         {% if request.GET.category == category.id|stringformat:"i" %}selected{% endif %}>
                                     {{ category.name }}
                                 </option>
-                            {% endfor %}  <!-- ТУК ТРЯБВА endfor -->
+                            {% endfor %}
                         </select>
                     </div>
                     <div class="col-md-4">
@@ -32,7 +38,7 @@
                                         {% if request.GET.type == type_code %}selected{% endif %}>
                                     {{ type_name }}
                                 </option>
-                            {% endfor %}  <!-- ТУК ТРЯБВА endfor -->
+                            {% endfor %}
                         </select>
                     </div>
                     <div class="col-md-4">
@@ -56,8 +62,7 @@
 <div class="row">
     {% for product in products %}
         <div class="col-md-4 mb-4">
-            <!-- Временно: показване директно, без include -->
-            <div class="card product-card">
+            <div class="card product-card h-100">
                 <div class="card-body">
                     <h5 class="card-title">{{ product.name }}</h5>
                     <p class="card-text">{{ product.description|truncatechars:100 }}</p>
@@ -79,11 +84,9 @@
                     <a href="{% url 'products:product_detail' product.pk %}" class="btn btn-primary">
                         <i class="fas fa-info-circle"></i> Детайли
                     </a>
-
                 </div>
             </div>
         </div>
-
     {% empty %}
         <div class="col-12">
             <div class="alert alert-info text-center">
@@ -95,10 +98,10 @@
                 </a>
             </div>
         </div>
-    {% endfor %}  <!-- ТУК ТРЯБВА endfor! -->
+    {% endfor %}
 </div>
 
-<!-- Ако имам пагинация, добавям тук -->
+<!-- Пагинация -->
 {% if is_paginated %}
 <nav aria-label="Page navigation" class="mt-4">
     <ul class="pagination justify-content-center">

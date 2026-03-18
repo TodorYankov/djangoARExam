@@ -4,6 +4,10 @@
 
 {% block title %}{{ product.name }} - TechShop{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/product_detail.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-md-8">
@@ -33,11 +37,15 @@
                         <td>{{ product.category.name }}</td>
                     </tr>
                 </table>
-                {% if product.image %}
-                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-img">
-                {% else %}
-                    <img src="{% static 'images/no-image.jpg' %}" alt="Няма снимка" class="product-img">
-                {% endif %}
+
+                <!-- Секция за снимката -->
+                <div class="text-center">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-detail-image">
+                    {% else %}
+                        <img src="{% static 'images/no-image.jpg' %}" alt="Няма снимка" class="product-detail-image">
+                    {% endif %}
+                </div>
             </div>
         </div>
 
