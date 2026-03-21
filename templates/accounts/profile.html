@@ -1,0 +1,131 @@
+<!-- templates/accounts/profile.html -->
+{% extends 'base.html' %}
+
+{% block title %}Моят профил - TechShop{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <!-- Лява колона - Снимка и статистика -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-camera"></i> Профилна снимка</h5>
+                </div>
+                <div class="card-body text-center">
+                    {% if profile_user.profile_picture %}
+                        <img src="{{ profile_user.profile_picture.url }}"
+                             alt="Profile Picture"
+                             class="profile-picture">
+                    {% else %}
+                        <div class="default-avatar mx-auto mb-3"
+                             style="width: 150px; height: 150px; font-size: 4rem; display: flex; align-items: center; justify-content: center;">
+                            {{ profile_user.get_full_name|first|default:profile_user.username|first|upper }}
+                        </div>
+                    {% endif %}
+
+                    <a href="{% url 'accounts:profile_picture' %}" class="btn btn-outline-primary btn-sm mt-3">
+                        <i class="fas fa-camera"></i> Смени снимка
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Статистика</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong><i class="fas fa-box"></i> Поръчки:</strong> {{ total_orders }}</p>
+                    <p><strong><i class="fas fa-star"></i> Точки за лоялност:</strong>
+                        <span class="badge bg-warning text-dark">{{ total_loyalty_points }}</span>
+                    </p>
+                    <p><strong><i class="fas fa-percent"></i> Попълненост на профила:</strong> {{ profile_completion }}%</p>
+                    <div class="progress mb-2">
+                        <div class="progress-bar" style="width: {{ profile_completion }}%"></div>
+                    </div>
+                    {% if profile_completion < 100 %}
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i> Попълнете липсващата информация
+                        </small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Дясна колона - Лична информация -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-user"></i> Лична информация</h5>
+                    <a href="{% url 'accounts:profile_edit' %}" class="btn btn-light btn-sm">
+                        <i class="fas fa-edit"></i> Редактирай
+                    </a>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th style="width: 180px;"><i class="fas fa-user-circle"></i> Потребителско име:</th>
+                            <td><strong>{{ profile_user.username }}</strong></td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-envelope"></i> Имейл:</th>
+                            <td>{{ profile_user.email }}</td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-user"></i> Име:</th>
+                            <td>{{ profile_user.first_name|default:"<span class='text-muted'>Не е въведено</span>" }}</td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-user"></i> Фамилия:</th>
+                            <td>{{ profile_user.last_name|default:"<span class='text-muted'>Не е въведена</span>" }}</td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-phone"></i> Телефон:</th>
+                            <td>{{ profile_user.formatted_phone }}</td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-map-marker-alt"></i> Адрес:</th>
+                            <td>{{ profile_user.address|default:"<span class='text-muted'>Не е въведен</span>"|linebreaks }}</td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-birthday-cake"></i> Дата на раждане:</th>
+                            <td>{{ profile_user.date_of_birth|date:"d.m.Y"|default:"<span class='text-muted'>Не е въведена</span>" }}</td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-chart-simple"></i> Възраст:</th>
+                            <td>{% if profile_user.age %}{{ profile_user.age }} години{% else %}<span class='text-muted'>-</span>{% endif %}</td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-newspaper"></i> Абонамент за бюлетин:</th>
+                            <td>
+                                {% if profile_user.newsletter_subscribed %}
+                                    <span class="badge bg-success"><i class="fas fa-check"></i> Активен</span>
+                                {% else %}
+                                    <span class="badge bg-secondary"><i class="fas fa-times"></i> Неактивен</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-calendar-plus"></i> Регистриран на:</th>
+                            <td>{{ profile_user.date_joined|date:"d.m.Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-calendar-check"></i> Последен вход:</th>
+                            <td>{{ profile_user.last_login|date:"d.m.Y H:i"|default:"-" }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'accounts:password_change' %}" class="btn btn-warning">
+                        <i class="fas fa-key"></i> Смяна на парола
+                    </a>
+                    <a href="{% url 'accounts:profile_delete' %}" class="btn btn-danger float-end"
+                       onclick="return confirm('Сигурни ли сте, че искате да изтриете профила си? Това действие е необратимо!');">
+                        <i class="fas fa-trash-alt"></i> Изтрий профил
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

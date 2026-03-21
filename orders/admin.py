@@ -1,10 +1,9 @@
-#orders/admin.py
+# orders/admin.py
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import Order, OrderItem
 
 
-# Custom филтър за is_completed
 class IsCompletedFilter(admin.SimpleListFilter):
     title = 'Завършена поръчка'
     parameter_name = 'is_completed'
@@ -29,22 +28,27 @@ class OrderItemInline(admin.TabularInline):
     fields = ['product', 'quantity', 'price_at_time', 'item_total']
     readonly_fields = ['item_total']
 
+    def item_total(self, obj):
+        return f'{obj.get_total():.2f} €.'
+
+    item_total.short_description = 'Общо'
+
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = ['id', 'customer_name', 'customer_email', 'customer_phone',
-                    'created_at', 'status', 'colored_status', 'is_completed_display', 'total_price']
-    list_filter = ['status', 'created_at', IsCompletedFilter]  # 👈 Добавете custom филтъра
-    search_fields = ['customer_name', 'customer_email', 'customer_phone', 'address']
+                    'created_at', 'status', 'colored_status', 'is_completed_display', 'total_price_display']
+    list_filter = ['status', 'created_at', IsCompletedFilter]
+    search_fields = ['guest_name', 'guest_email', 'guest_phone', 'user__username', 'user__email']
     inlines = [OrderItemInline]
-    readonly_fields = ['total_price', 'created_at']
+    readonly_fields = ['created_at', 'updated_at', 'total_price_display']
 
     fieldsets = (
         ('Информация за клиента', {
-            'fields': ('customer_name', 'customer_email', 'customer_phone', 'address')
+            'fields': ('user', 'guest_name', 'guest_email', 'guest_phone')
         }),
-        ('Статус и дата', {
-            'fields': ('status', 'created_at', 'total_price')
+        ('Статус и дати', {
+            'fields': ('status', 'created_at', 'updated_at', 'total_price_display')
         }),
     )
 
@@ -65,24 +69,24 @@ class OrderAdmin(admin.ModelAdmin):
     colored_status.admin_order_field = 'status'
 
     def is_completed_display(self, obj):
-        return 'Да' if obj.is_completed else 'Не'
+        return obj.status == 'completed'
 
     is_completed_display.short_description = 'Завършена'
     is_completed_display.boolean = True
 
-    def total_price(self, obj):
-        return f'{obj.total_price:.2f} лв.'
+    def total_price_display(self, obj):
+        return f'{obj.total_amount:.2f} €.'
 
-    total_price.short_description = 'Обща сума'
+    total_price_display.short_description = 'Обща сума'
 
 
 @admin.register(OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
     list_display = ['id', 'order', 'product', 'quantity', 'price_at_time', 'item_total']
-    list_filter = ['order__status']  # Филтър по статус на поръчката
-    search_fields = ['order__customer_name', 'product__name']
+    list_filter = ['order__status']
+    search_fields = ['order__guest_name', 'product__name', 'order__user__username']
 
     def item_total(self, obj):
-        return f'{obj.item_total:.2f} лв.'
+        return f'{obj.get_total():.2f} €.'
 
     item_total.short_description = 'Общо'

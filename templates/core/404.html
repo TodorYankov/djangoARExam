@@ -1,6 +1,7 @@
+<!-- templates/core/404.html -->
 {% extends 'base.html' %}
 
-{% block title %}404 - Страницата не е намерена{% endblock %}
+{% block title %}404 - Страницата не е намерена - TechShop{% endblock %}
 
 {% block content %}
 <div class="container text-center py-5">
@@ -16,10 +17,10 @@
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <div class="d-grid gap-2">
-                    <a href="{% url 'home' %}" class="btn btn-primary btn-lg">
+                    <a href="{% url 'core:index' %}" class="btn btn-primary btn-lg">
                         <i class="fas fa-home"></i> Към начална страница
                     </a>
-                    <a href="{% url 'product_list' %}" class="btn btn-outline-primary btn-lg">
+                    <a href="{% url 'products:list' %}" class="btn btn-outline-primary btn-lg">
                         <i class="fas fa-laptop"></i> Разгледайте продуктите
                     </a>
                     <a href="{% url 'core:contact' %}" class="btn btn-outline-secondary btn-lg">
@@ -31,5 +32,6 @@
     </div>
 </div>
 {% endblock %}
+
 
 

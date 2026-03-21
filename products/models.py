@@ -36,7 +36,7 @@ class Product(models.Model):
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(0)],
-        verbose_name='Цена'
+        verbose_name="Цена (€)"
     )
     category = models.ForeignKey(
         Category,

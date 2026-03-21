@@ -8,7 +8,7 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         fields = ['name', 'description', 'price', 'stock_quantity',
-                  'category', 'product_type', 'image', 'related_products']  # 👈 Добавихме related_products
+                  'category', 'product_type', 'image', 'related_products']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Въведете име на продукта'}),
             'description': forms.Textarea(
@@ -19,12 +19,11 @@ class ProductForm(forms.ModelForm):
             'product_type': forms.Select(attrs={'class': 'form-select'}),
             'image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
             'related_products': forms.SelectMultiple(attrs={'class': 'form-select', 'size': 5}),
-            # 👈 Добавихме widget за related_products
         }
         labels = {
             'name': 'Име на продукт',
             'description': 'Описание',
-            'price': 'Цена (лв.)',
+            'price': 'Цена (€.)',
             'stock_quantity': 'Наличност (брой)',
             'category': 'Категория',
             'product_type': 'Тип продукт',

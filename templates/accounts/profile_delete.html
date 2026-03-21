@@ -1,0 +1,49 @@
+<!-- templates/accounts/profile_delete.html -->
+{% extends 'base.html' %}
+
+{% block title %}Изтриване на профил - TechShop{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Изтриване на профил</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <strong>Внимание!</strong> Това действие е необратимо!
+                </div>
+
+                <p>Сигурни ли сте, че искате да изтриете профила си?</p>
+                <p>Следните данни ще бъдат загубени завинаги:</p>
+                <ul>
+                    <li>Лична информация (име, имейл, телефон, адрес)</li>
+                    <li>Профилна снимка</li>
+                    <li>История на поръчките</li>
+                    <li>Точки за лоялност</li>
+                    <li>Настройки на профила</li>
+                </ul>
+
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle"></i>
+                    Ако имате активни поръчки, моля първо ги завършете или се свържете с нас.
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Не, върни ме обратно
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash-alt"></i> Да, изтрий профила ми
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+<!-- templates/accounts/login.html -->
+{% extends 'base.html' %}
+
+{% block title %}Вход в TechShop{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-sign-in-alt"></i> Вход в TechShop</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Грешно потребителско име или парола. Моля, опитайте отново.
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">
+                            <i class="fas fa-user"></i> Потребителско име
+                        </label>
+                        <input type="text" name="username" id="id_username"
+                               class="form-control form-control-lg"
+                               required autofocus>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_password" class="form-label">
+                            <i class="fas fa-lock"></i> Парола
+                        </label>
+                        <div class="input-group">
+                            <input type="password" name="password" id="id_password"
+                                   class="form-control form-control-lg" required>
+                            <button type="button" class="btn btn-outline-secondary toggle-password"
+                                    data-target="id_password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="remember" id="id_remember" class="form-check-input">
+                        <label class="form-check-label" for="id_remember">
+                            <i class="fas fa-check-circle"></i> Запомни ме
+                        </label>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-sign-in-alt"></i> Вход
+                        </button>
+                    </div>
+                </form>
+
+                <hr>
+
+                <p class="text-center mb-2">
+                    <a href="{% url 'accounts:password_reset' %}">
+                        <i class="fas fa-key"></i> Забравена парола?
+                    </a>
+                </p>
+                <p class="text-center mb-0">
+                    Нямате профил?
+                    <a href="{% url 'accounts:register' %}">
+                        <i class="fas fa-user-plus"></i> Регистрирайте се тук
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

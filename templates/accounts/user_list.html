@@ -1,0 +1,110 @@
+<!-- templates/accounts/user_list.html -->
+{% extends 'base.html' %}
+
+{% block title %}Списък с потребители - TechShop{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-4">
+                <i class="fas fa-users"></i> Списък с потребители
+            </h1>
+            <p class="lead">Управление на всички регистрирани потребители</p>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="dashboard-stats mb-4">
+        <div class="stat-card">
+            <i class="fas fa-users"></i>
+            <div class="stat-card-value">{{ total_users }}</div>
+            <div class="stat-card-label">Общо потребители</div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-check-circle"></i>
+            <div class="stat-card-value">{{ active_users }}</div>
+            <div class="stat-card-label">Активни потребители</div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-user-tie"></i>
+            <div class="stat-card-value">{{ staff_count }}</div>
+            <div class="stat-card-label">Персонал</div>
+        </div>
+    </div>
+
+    <!-- Таблица с потребители -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-list"></i> Списък с потребители</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Снимка</th>
+                            <th>Потребител</th>
+                            <th>Имейл</th>
+                            <th>Телефон</th>
+                            <th>Статус</th>
+                            <th>Точки</th>
+                            <th>Регистрация</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in users %}
+                        <tr>
+                            <td>
+                                {% if u.profile_picture %}
+                                    <img src="{{ u.profile_picture.url }}"
+                                         class="user-list-avatar" alt="{{ u.username }}">
+                                {% else %}
+                                    <div class="user-list-avatar-placeholder">
+                                        {{ u.username|first|upper }}
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>{{ u.get_full_name|default:u.username }}</strong><br>
+                                <small class="text-muted">@{{ u.username }}</small>
+                                {% if u.is_superuser %}
+                                    <span class="badge bg-warning text-dark ms-1">SUPER</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ u.email }}</td>
+                            <td>{{ u.formatted_phone }}</td>
+                            <td>
+                                {% if u.is_active %}
+                                    <span class="user-status-active">Активен</span>
+                                {% else %}
+                                    <span class="user-status-inactive">Неактивен</span>
+                                {% endif %}
+                                {% if u.is_staff %}
+                                    <span class="badge bg-info ms-1">Персонал</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ u.loyalty_points }}</td>
+                            <td>{{ u.date_joined|date:"d.m.Y" }}</td>
+                            <td>
+                                <a href="{% url 'admin:accounts_customuser_change' u.id %}"
+                                   class="btn btn-sm btn-outline-primary" target="_blank">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">
+                                <i class="fas fa-users-slash"></i> Няма регистрирани потребители.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

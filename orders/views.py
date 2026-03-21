@@ -1,87 +1,104 @@
 # orders/views.py
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.contrib import messages
+from django.db.models import Q
 
 from .models import Order, OrderItem
 from .forms import OrderForm, OrderCreateForm, OrderItemFormSet, OrderStatusForm, OrderItemForm
 from products.models import Product
-from django.db.models import Q
+
+
+# ========== ДОБАВЯНЕ В КОЛИЧКАТА ==========
+@login_required
+def add_to_cart(request, product_id):
+    """Добавя продукт в количката (сесия)"""
+    product = get_object_or_404(Product, id=product_id, is_available=True)
+
+    # Инициализиране на количката в сесията, ако не съществува
+    if 'cart' not in request.session:
+        request.session['cart'] = []
+
+    cart = request.session['cart']
+
+    # Проверка дали продуктът вече е в количката
+    found = False
+    for item in cart:
+        if item['product_id'] == product_id:
+            item['quantity'] += 1
+            found = True
+            break
+
+    if not found:
+        cart.append({
+            'product_id': product.id,
+            'name': product.name,
+            'price': float(product.price),
+            'quantity': 1,
+            'image': product.image.url if product.image else None
+        })
+
+    request.session['cart'] = cart
+    messages.success(request, f'{product.name} беше добавен в количката!')
+
+    return redirect(request.META.get('HTTP_REFERER', 'products:product_list'))
+
 
 # ========== ПУБЛИЧНА ФУНКЦИЯ ЗА СЪЗДАВАНЕ НА ПОРЪЧКА ==========
 def order_create(request):
+    """Създаване на нова поръчка"""
     if request.method == 'POST':
-        # Създаваме формата за поръчка с POST данни
         form = OrderCreateForm(request.POST)
-        # ВАЖНО: Използваме същия prefix ('items') както в шаблона и GET случая,
-        # за да може Django да свърже полетата от заявката с formset-а.
         formset = OrderItemFormSet(request.POST, prefix='items')
 
-        # --- ДЕБЪГ: извеждаме получените данни в конзолата ---
-        print("=== POST данни от заявката ===")
-        print(request.POST)
-        print("--- Стойност на първия продукт (items-0-product) ---")
-        print(request.POST.getlist('items-0-product'))  # ще покаже ID-то на избрания продукт
-
-        # Проверяваме дали и двете форми са валидни
         if form.is_valid() and formset.is_valid():
-            # 1. Записваме поръчката, за да получи ID
-            order = form.save()
+            # 1. Записваме поръчката
+            order = form.save(commit=False)
 
-            # 2. Задаваме на formset-а към коя поръчка принадлежи (важно за запис)
-            formset.instance = order
+            # Ако потребителят е логнат, свързваме поръчката с него
+            if request.user.is_authenticated:
+                order.user = request.user
 
-            # 3. Записваме артикулите без commit, за да добавим допълнителни данни
+            order.save()
+
+            # 2. Записваме артикулите
             items = formset.save(commit=False)
             for item in items:
-                item.order = order  # вече би трябвало да е зададено, но за всеки случай
-                # Взимаме актуалната цена от продукта, със защита при липсваща стойност
+                item.order = order
+                # Взимаме актуалната цена от продукта
                 item.price_at_time = item.product.price if item.product.price else 0
                 item.save()
 
-            # 4. Изтриваме маркираните за изтриване артикули (ако има такива)
+            # 3. Изтриваме маркираните за изтриване артикули
             for item in formset.deleted_objects:
                 item.delete()
 
-            messages.success(request, 'Благодарим за поръчката! Ще се свържем с вас.')
-            return redirect('products:product_list')
-        else:
-            # --- ДЕБЪГ: при невалидни данни показваме грешките в конзолата ---
-            print("!!! Грешки във формата за поръчка !!!")
-            print(form.errors)
-            print("!!! Грешки във formset (по отделните редове) !!!")
-            print(formset.errors)
-            print("!!! Общи грешки на formset (независими от редовете) !!!")
-            print(formset.non_form_errors())
+            # 4. Изчистване на количката след успешна поръчка
+            if 'cart' in request.session:
+                del request.session['cart']
 
-            # Връщаме шаблона с формите и грешките, за да може да ги видите и в самата страница (временно)
-            return render(request, 'orders/order_form.html', {
-                'form': form,
-                'formset': formset,
-                'form_errors': form.errors,
-                'formset_errors': formset.errors,
-            })
+            messages.success(request, 'Благодарим за поръчката! Ще се свържем с вас.')
+            return redirect('orders:order_detail', pk=order.id)
+        else:
+            # Показване на грешки
+            messages.error(request, 'Моля, поправете грешките във формата.')
     else:
         # GET заявка – показваме празна форма
         form = OrderCreateForm()
-        # Създаваме празна поръчка (незаписана), за да генерираме празните редове за продукти
         empty_order = Order()
         formset = OrderItemFormSet(instance=empty_order, prefix='items')
-        return render(request, 'orders/order_form.html', {
-            'form': form,
-            'formset': formset,
-        })
 
-# ========== ДОБАВЯНЕ В КОЛИЧКАТА (ОСТАВА НЕПРОМЕНЕНО) ==========
-def add_to_cart(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
-    # Тук -> истинската логика за количката
-    messages.success(request, f"{product.name} е добавен в количката.")  # product.title? В модела е name
-    return redirect(request.META.get('HTTP_REFERER', 'products:product_list'))
+    return render(request, 'orders/order_form.html', {
+        'form': form,
+        'formset': formset,
+    })
 
-# ========== КЛАСОВИ ИЗГЛЕДИ (АДМИН ЧАСТ) ==========
+
+# ========== КЛАСОВИ ИЗГЛЕДИ ==========
 class OrderListView(ListView):
+    """Списък с поръчки"""
     model = Order
     template_name = 'orders/order_list.html'
     context_object_name = 'orders'
@@ -102,33 +119,34 @@ class OrderListView(ListView):
             if search_query.isdigit():
                 queryset = queryset.filter(id=int(search_query))
             else:
+                # Търсене по име на клиент (от профила или от поръчката)
                 queryset = queryset.filter(
-                    Q(customer_name__icontains=search_query) |
-                    Q(customer_email__icontains=search_query) |
-                    Q(customer_phone__icontains=search_query)
+                    Q(user__first_name__icontains=search_query) |
+                    Q(user__last_name__icontains=search_query) |
+                    Q(user__username__icontains=search_query) |
+                    Q(user__email__icontains=search_query)
                 )
 
         return queryset.order_by('-created_at')
 
 
 class OrderDetailView(DetailView):
+    """Детайли на поръчка"""
     model = Order
     template_name = 'orders/order_detail.html'
     context_object_name = 'order'
 
 
 class OrderCreateView(CreateView):
+    """Създаване на поръчка (административно)"""
     model = Order
     form_class = OrderForm
     template_name = 'orders/order_form.html'
     success_url = reverse_lazy('orders:order_list')
 
-    def form_valid(self, form):
-        # Мога да добавя имейл известия и др.
-        return super().form_valid(form)
-
 
 class OrderUpdateView(UpdateView):
+    """Редактиране на поръчка"""
     model = Order
     form_class = OrderForm
     template_name = 'orders/order_form.html'
@@ -136,6 +154,7 @@ class OrderUpdateView(UpdateView):
 
 
 class OrderDeleteView(DeleteView):
+    """Изтриване на поръчка"""
     model = Order
     template_name = 'orders/order_confirm_delete.html'
     success_url = reverse_lazy('orders:order_list')
@@ -147,6 +166,7 @@ class OrderDeleteView(DeleteView):
 
 
 class OrderStatusUpdateView(UpdateView):
+    """Обновяване на статуса на поръчка"""
     model = Order
     form_class = OrderStatusForm
     template_name = 'orders/order_status_form.html'
@@ -154,6 +174,7 @@ class OrderStatusUpdateView(UpdateView):
 
 
 class OrderItemCreateView(CreateView):
+    """Добавяне на артикул към поръчка"""
     model = OrderItem
     form_class = OrderItemForm
     template_name = 'orders/orderitem_form.html'
@@ -169,5 +190,5 @@ class OrderItemCreateView(CreateView):
         order_item.order = order
         order_item.price_at_time = order_item.product.price
         order_item.save()
+        messages.success(self.request, f'Артикулът {order_item.product.name} беше добавен към поръчката.')
         return redirect('orders:order_detail', pk=order.id)
-

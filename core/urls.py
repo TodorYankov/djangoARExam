@@ -2,11 +2,11 @@
 from django.urls import path
 from . import views
 
-app_name = 'core'  # Важно за namespacing
+app_name = 'core'
 
 urlpatterns = [
-    # Начална страница на корена
-    path('', views.home_view, name='home'),
+    # Начална страница
+    path('', views.home_view, name='index'),
 
     # Информационни страници
     path('about/', views.about_view, name='about'),
@@ -15,3 +15,4 @@ urlpatterns = [
     path('privacy/', views.privacy_policy_view, name='privacy'),
     path('terms/', views.terms_view, name='terms'),
 ]
+

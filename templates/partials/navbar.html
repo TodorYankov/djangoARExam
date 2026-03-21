@@ -1,7 +1,7 @@
-<!-- navbar.html -->
+<!-- templates/partials/navbar.html -->
 <nav class="navbar navbar-expand-lg horizontal-menu">
     <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="{% url 'core:home' %}" style="color: var(--primary-color);">
+        <a class="navbar-brand fw-bold" href="{% url 'core:index' %}" style="color: var(--primary-color);">
             <i class="fas fa-laptop-code me-2"></i>TechShop
         </a>
 
@@ -11,33 +11,40 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav mx-auto">
-                <!-- Хоризонтално меню -->
+                <!-- Начало -->
                 <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
-                       href="{% url 'core:home' %}">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}"
+                       href="{% url 'core:index' %}">
                         <i class="fas fa-home"></i> Начало
                     </a>
                 </li>
 
+                <!-- Продукти -->
                 <li class="nav-item">
                     <a class="nav-link {% if 'product' in request.resolver_match.url_name %}active{% endif %}"
                        href="{% url 'products:product_list' %}">
                         <i class="fas fa-laptop"></i> Продукти
                     </a>
                 </li>
+
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'products:category_list' %}">
                        <i class="fas fa-list"></i> Категории
                     </a>
                 </li>
 
+                <!-- Поръчки - само за автентикирани потребители -->
+                {% if user.is_authenticated %}
                 <li class="nav-item">
                     <a class="nav-link {% if 'order' in request.resolver_match.url_name %}active{% endif %}"
                        href="{% url 'orders:order_list' %}">
                         <i class="fas fa-shopping-cart"></i> Поръчки
                     </a>
                 </li>
+                {% endif %}
 
+                <!-- Добави меню - само за персонал -->
+                {% if user.is_staff or user.is_superuser %}
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                         <i class="fas fa-plus-circle"></i> Добави
@@ -60,7 +67,9 @@
                         </li>
                     </ul>
                 </li>
+                {% endif %}
 
+                <!-- Информация - достъпно за всички -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                         <i class="fas fa-info-circle"></i> Информация
@@ -94,9 +103,59 @@
                         </li>
                     </ul>
                 </li>
-            </ul>
 
-            <!-- Премахната е формата за търсене от тук! -->
+                <!-- Потребителско меню -->
+                {% if user.is_authenticated %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}"
+                                 class="rounded-circle" style="width: 25px; height: 25px; object-fit: cover;">
+                        {% else %}
+                            <i class="fas fa-user-circle"></i>
+                        {% endif %}
+                        {{ user.get_full_name|default:user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="{% url 'accounts:profile' %}">
+                                <i class="fas fa-user me-2"></i> Моят профил
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'accounts:dashboard' %}">
+                                <i class="fas fa-tachometer-alt me-2"></i> Табло
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'accounts:password_change' %}">
+                                <i class="fas fa-key me-2"></i> Смяна на парола
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form method="post" action="{% url 'accounts:logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Изход
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'accounts:login' %}">
+                        <i class="fas fa-sign-in-alt"></i> Вход
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link btn btn-primary text-white px-3 ms-2" href="{% url 'accounts:register' %}">
+                        <i class="fas fa-user-plus"></i> Регистрация
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
         </div>
     </div>
 </nav>
@@ -105,14 +164,18 @@
 <div class="bg-light py-3 border-bottom">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-12">
+            <div class="col-md-8 col-lg-6">
                 <form class="d-flex" method="get" action="{% url 'products:product_list' %}">
-                    <input class="form-control me-2" type="search"
-                           name="search" placeholder="Търсене по марка, модел или спецификации..."
-                           value="{{ request.GET.search }}">
-                    <button class="btn btn-primary" type="submit">
-                        <i class="fas fa-search me-2"></i>Търси
-                    </button>
+                    <div class="input-group">
+                        <input class="form-control" type="search"
+                               name="search"
+                               placeholder="Търсене по марка, модел или спецификации..."
+                               value="{{ request.GET.search|default:'' }}"
+                               aria-label="Търсене">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search me-1"></i> Търси
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -120,23 +183,35 @@
 </div>
 
 <!-- Модален прозорец "За нас" -->
-<div class="modal fade" id="aboutModal" tabindex="-1">
-    <div class="modal-dialog">
+<div class="modal fade" id="aboutModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">За TechShop</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-info-circle me-2"></i>За TechShop
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <p>TechShop е онлайн магазин за лаптопи и компютърна техника.</p>
-                <p>Това е демо проект за изпит по Django Basics в SoftUni.</p>
-                <p><strong>Функционалности:</strong></p>
+                <p>Това е демо проект за изпит по Django Advanced в SoftUni.</p>
+                <hr>
+                <p><strong><i class="fas fa-check-circle text-success me-1"></i> Функционалности:</strong></p>
                 <ul>
-                    <li>Управление на продукти (CRUD)</li>
-                    <li>Управление на поръчки</li>
-                    <li>Категории и брандове</li>
-                    <li>Търсене и филтриране</li>
+                    <li>✅ Управление на продукти (CRUD)</li>
+                    <li>✅ Управление на поръчки</li>
+                    <li>✅ Категории и брандове</li>
+                    <li>✅ Търсене и филтриране</li>
+                    <li>✅ Потребителски профили</li>
+                    <li>✅ Точки за лоялност</li>
                 </ul>
+                <div class="alert alert-info mt-3 mb-0">
+                    <i class="fas fa-graduation-cap me-2"></i>
+                    Проект за курса Django Advanced @ SoftUni
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Затвори</button>
             </div>
         </div>
     </div>
