@@ -57,9 +57,13 @@ urlpatterns = [
          auth_views.PasswordResetCompleteView.as_view(
              template_name='accounts/password_reset_complete.html'
          ), name='password_reset_complete'),
+<<<<<<< HEAD
 
     # ---
     path('toggle-favourite/<int:product_id>/', views.ToggleFavouriteView.as_view(), name='toggle_favourite'),
     path('favourites/', views.FavouriteListView.as_view(), name='favourites'),
 ]    
+=======
+]
+>>>>>>> 029e97a88d363c55a2af3c732061de53b5bb95f1
 
