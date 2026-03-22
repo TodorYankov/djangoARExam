@@ -1,0 +1,153 @@
+<!-- templates/accounts/dashboard.html -->
+{% extends 'base.html' %}
+
+{% block title %}Моето табло - TechShop{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-4">
+                <i class="fas fa-tachometer-alt"></i> Моето табло
+            </h1>
+            <p class="lead">Добре дошли, {{ user.get_full_name|default:user.username }}!</p>
+        </div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="dashboard-stats">
+        <div class="stat-card">
+            <i class="fas fa-box"></i>
+            <div class="stat-card-value">{{ total_orders }}</div>
+            <div class="stat-card-label">Общо поръчки</div>
+        </div>
+
+        <div class="stat-card">
+            <i class="fas fa-star"></i>
+            <div class="stat-card-value">{{ loyalty_points }}</div>
+            <div class="stat-card-label">Точки за лоялност</div>
+        </div>
+
+        <div class="stat-card">
+            <i class="fas fa-percent"></i>
+            <div class="stat-card-value">{{ profile_completion }}%</div>
+            <div class="stat-card-label">Попълненост на профила</div>
+        </div>
+
+        <div class="stat-card">
+            <i class="fas fa-money-bill-wave"></i>
+            <div class="stat-card-value">{{ total_spent|default:0|floatformat:2 }} €.</div>
+            <div class="stat-card-label">Общо похарчено</div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Последни поръчки -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Последни поръчки</h5>
+                </div>
+                <div class="card-body">
+                    {% if orders %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Дата</th>
+                                        <th>Сума</th>
+                                        <th>Статус</th>
+                                        <th>Действие</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in orders|slice:":5" %}
+                                        <tr class="order-row" data-order-id="{{ order.id }}">
+                                            <td>#{{ order.id }}</td>
+                                            <td>{{ order.created_at|date:"d.m.Y" }}</td>
+                                            <td>{{ order.total_amount|floatformat:2 }} €.</td>
+                                            <td>
+                                                <span class="badge {% if order.status == 'completed' %}bg-success{% elif order.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                                    {{ order.get_status_display }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'orders:detail' order.id %}" class="btn btn-sm btn-info">
+                                                    <i class="fas fa-eye"></i> Детайли
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% if total_orders > 5 %}
+                            <div class="text-center">
+                                <a href="{% url 'orders:order_list' %}" class="btn btn-outline-primary">
+                                    Виж всички поръчки
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-center text-muted">
+                            <i class="fas fa-shopping-cart"></i> Нямате направени поръчки все още.
+                        </p>
+                        <div class="text-center">
+                            <a href="{% url 'products:product_list' %}" class="btn btn-primary">
+                                <i class="fas fa-shopping-cart"></i> Направи първата си поръчка
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Бързи действия -->
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-bolt"></i> Бързи действия</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'accounts:profile_edit' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-edit"></i> Редактирай профил
+                        </a>
+                        <a href="{% url 'accounts:profile_picture' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-camera"></i> Смени профилна снимка
+                        </a>
+                        <a href="{% url 'accounts:password_change' %}" class="btn btn-outline-warning">
+                            <i class="fas fa-key"></i> Смени парола
+                        </a>
+                        <a href="{% url 'products:product_list' %}" class="btn btn-outline-success">
+                            <i class="fas fa-shopping-cart"></i> Разгледай продукти
+                        </a>
+                        <hr>
+                        <a href="{% url 'accounts:profile_delete' %}" class="btn btn-outline-danger"
+                           onclick="return confirm('Сигурни ли сте, че искате да изтриете профила си?');">
+                            <i class="fas fa-trash-alt"></i> Изтрий профил
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Съвет -->
+            {% if profile_completion < 100 %}
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6><i class="fas fa-lightbulb"></i> Съвет:</h6>
+                        <p class="small text-muted mb-0">
+                            Вашият профил е попълнен само {{ profile_completion }}%.
+                            Попълнете липсващата информация за по-добро обслужване.
+                        </p>
+                        <a href="{% url 'accounts:profile_edit' %}" class="btn btn-sm btn-link">
+                            Попълни профила си →
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

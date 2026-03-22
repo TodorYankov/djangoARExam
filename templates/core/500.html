@@ -1,50 +1,27 @@
 <!-- templates/core/500.html -->
-<!DOCTYPE html>
-<html lang="bg">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
-            background-color: #f8f9fa;
-        }
-        .error-container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        h1 {
-            font-size: 4rem;
-            color: #dc3545;
-            margin: 0;
-        }
-        h2 {
-            color: #343a40;
-        }
-        .btn {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-        .btn:hover {
-            background-color: #0056b3;
-        }
-    </style>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}Грешка 500 - TechShop{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
     <div class="error-container">
-        <h1>500</h1>
-        <h2>{{ page_title }}</h2>
-        <p>Възникна вътрешна грешка в сървъра.</p>
-        <p>Моля, опитайте по-късно или се свържете с администратор.</p>
-        <a href="/" class="btn">Към начална страница</a>
+        <h1 class="display-1 text-danger">500</h1>
+        <h2 class="mb-4">{{ page_title|default:"Вътрешна грешка в сървъра" }}</h2>
+        <p class="lead text-muted mb-4">
+            Възникна неочаквана грешка. Нашият екип вече работи по отстраняването ѝ.
+        </p>
+        <p class="mb-4">
+            Моля, опитайте по-късно или се свържете с нас, ако проблемът продължава.
+        </p>
+        <div class="mt-4">
+            <a href="{% url 'core:index' %}" class="btn btn-primary me-2">
+                <i class="fas fa-home"></i> Към начална страница
+            </a>
+            <a href="{% url 'core:contact' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-envelope"></i> Свържете се с нас
+            </a>
+        </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

@@ -9,13 +9,10 @@ from django.urls import include, path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-
-    # Включвам core.urls под root ('')
-    # (тогава всички core страници ще са в корена на сайта)
     path('', include('core.urls')),
-
     path('products/', include('products.urls')),
     path('orders/', include('orders.urls')),
+    path('accounts/', include('accounts.urls')),
 ]
 
 if settings.DEBUG:

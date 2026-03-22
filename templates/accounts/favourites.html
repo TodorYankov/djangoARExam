@@ -1,0 +1,65 @@
+<!-- templates/accounts/favourites.html -->
+{% extends 'base.html' %}
+
+{% block title %}Моите любими продукти - TechShop{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">
+        <i class="fas fa-heart text-danger"></i> Моите любими продукти
+        <small class="text-muted">({{ total_favourites }} продукта)</small>
+    </h1>
+
+    {% if favourites %}
+        <div class="row">
+            {% for product in favourites %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-img-top-wrapper" style="height: 200px; overflow: hidden;">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}"
+                                     style="width: 100%; height: 100%; object-fit: cover;">
+                            {% else %}
+                                <div class="bg-light d-flex align-items-center justify-content-center h-100">
+                                    <i class="fas fa-image fa-3x text-muted"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text text-muted">{{ product.description|truncatechars:80 }}</p>
+                            <p class="card-text">
+                                <strong class="text-success fs-4">{{ product.price }} €</strong>
+                                {% if product.is_available %}
+                                    <span class="badge bg-success float-end">В наличност</span>
+                                {% else %}
+                                    <span class="badge bg-danger float-end">Изчерпан</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'products:product_detail' product.id %}" class="btn btn-primary">
+                                    <i class="fas fa-info-circle"></i> Детайли
+                                </a>
+                                <a href="{% url 'accounts:toggle_favourite' product.id %}" class="btn btn-outline-danger">
+                                    <i class="fas fa-heart-broken"></i> Премахни от любими
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info text-center py-5">
+            <i class="fas fa-heart fa-3x mb-3 text-muted"></i>
+            <h4>Нямате любими продукти</h4>
+            <p>Разгледайте нашите продукти и добавете любимите си!</p>
+            <a href="{% url 'products:product_list' %}" class="btn btn-primary mt-3">
+                <i class="fas fa-shopping-bag"></i> Разгледай продукти
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

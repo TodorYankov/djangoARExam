@@ -3,76 +3,72 @@ from django import forms
 from django.forms import inlineformset_factory
 from .models import Order, OrderItem
 
-# ──────────────────────────────────────
-# Форми за поръчка
-# ──────────────────────────────────────
+
 class OrderForm(forms.ModelForm):
+    """Форма за административно редактиране на поръчка"""
+
     class Meta:
         model = Order
-        fields = ['customer_name', 'customer_email', 'customer_phone', 'address', 'status']
+        fields = ['user', 'guest_name', 'guest_email', 'guest_phone', 'status']
         widgets = {
-            'customer_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Име'}),
-            'customer_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'имейл@пример.com'}),
-            'customer_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '0888 123 456'}),
-            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Адрес'}),
-            'status': forms.Select(attrs={'class': 'form-select'}),  # 👈 добавете това
+            'user': forms.Select(attrs={'class': 'form-select'}),
+            'guest_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Име'}),
+            'guest_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'имейл@пример.com'}),
+            'guest_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '0888 123 456'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
-            'customer_name': 'Име',
-            'customer_email': 'Имейл',
-            'customer_phone': 'Телефон',
-            'address': 'Адрес',
-            'status': 'Статус',  # 👈 променено от is_completed
+            'user': 'Потребител',
+            'guest_name': 'Име (гост)',
+            'guest_email': 'Имейл (гост)',
+            'guest_phone': 'Телефон (гост)',
+            'status': 'Статус',
         }
+
 
 class OrderCreateForm(forms.ModelForm):
+    """Форма за създаване на поръчка (публична)"""
+
     class Meta:
         model = Order
-        fields = ['customer_name', 'customer_email', 'customer_phone', 'address']
+        fields = ['guest_name', 'guest_email', 'guest_phone']
         widgets = {
-            'customer_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Име'}),
-            'customer_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'имейл@пример.com'}),
-            'customer_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '0888 123 456'}),
-            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Адрес'}),
+            'guest_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Вашето име'}),
+            'guest_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'имейл@пример.com'}),
+            'guest_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '0888 123 456'}),
         }
         labels = {
-            'customer_name': 'Име',
-            'customer_email': 'Имейл',
-            'customer_phone': 'Телефон',
-            'address': 'Адрес',
+            'guest_name': 'Име',
+            'guest_email': 'Имейл',
+            'guest_phone': 'Телефон',
         }
 
+    def clean_guest_phone(self):
+        phone = self.cleaned_data.get('guest_phone')
+        if phone:
+            # Премахване на всички нецифрови символи
+            import re
+            cleaned = re.sub(r'[\s\(\)\-]', '', phone)
+            if not re.match(r'^[0-9]{10,15}$', cleaned):
+                raise forms.ValidationError('Моля, въведете валиден телефонен номер.')
+            return cleaned
+        return phone
+
+
 class OrderStatusForm(forms.ModelForm):
-    # Създаваме поле, което не е свързано директно с модела
-    is_completed = forms.BooleanField(
-        required=False,
-        label='Поръчката е изпълнена',
-        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
-    )
+    """Форма за обновяване на статуса на поръчка"""
 
     class Meta:
         model = Order
-        fields = ['status']  # само status, без is_completed
+        fields = ['status']
+        widgets = {
+            'status': forms.Select(attrs={'class': 'form-select'}),
+        }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.instance and self.instance.pk:
-            # Задаваме началната стойност от property-то
-            self.fields['is_completed'].initial = self.instance.is_completed
 
-    def save(self, commit=True):
-        instance = super().save(commit=False)
-        # Ако is_completed е отметнато, сменяме статуса на 'completed'
-        if self.cleaned_data.get('is_completed'):
-            instance.status = 'completed'
-        if commit:
-            instance.save()
-        return instance
-
-# ──────────────────────────────────────
-# Форма за артикул
-# ──────────────────────────────────────
 class OrderItemForm(forms.ModelForm):
+    """Форма за артикул в поръчка"""
+
     class Meta:
         model = OrderItem
         fields = ['product', 'quantity']
@@ -85,13 +81,18 @@ class OrderItemForm(forms.ModelForm):
             'quantity': 'Количество',
         }
 
-# ──────────────────────────────────────
-# Formset за артикули (inline)
-# ──────────────────────────────────────
+    def clean_quantity(self):
+        quantity = self.cleaned_data.get('quantity')
+        if quantity and quantity <= 0:
+            raise forms.ValidationError('Количеството трябва да бъде поне 1.')
+        return quantity
+
+
 OrderItemFormSet = inlineformset_factory(
     Order,
     OrderItem,
     form=OrderItemForm,
     extra=1,
     can_delete=True,
+    fields=['product', 'quantity']
 )

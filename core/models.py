@@ -1,14 +1,20 @@
 # core/models.py
 from django.db import models
-from django.contrib.auth.models import User
 
+class ContactMessage(models.Model):
+    """Модел за съобщения от контактната форма"""
+    name = models.CharField(max_length=100, verbose_name='Име')
+    email = models.EmailField(verbose_name='Имейл')
+    subject = models.CharField(max_length=200, verbose_name='Тема', blank=True)
+    message = models.TextField(verbose_name='Съобщение')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата')
+    is_read = models.BooleanField(default=False, verbose_name='Прочетено')
 
-# Модел за потребителски профил  (One-to-One с User)
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    phone = models.CharField(max_length=20, blank=True)
-    address = models.TextField(blank=True)
-    newsletter_subscription = models.BooleanField(default=True)
+    class Meta:
+        verbose_name = 'Съобщение за контакт'
+        verbose_name_plural = 'Съобщения за контакт'
+        ordering = ['-created_at']
 
     def __str__(self):
-        return self.user.username
+        return f"{self.name} - {self.created_at.strftime('%d.%m.%Y')}"
+

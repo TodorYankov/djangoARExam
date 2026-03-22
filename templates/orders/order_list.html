@@ -1,3 +1,4 @@
+<!-- techShop/templates/orders/order_list.html -->
 {% extends 'base.html' %}
 {% load static %}
 
@@ -96,7 +97,7 @@
                     <th>Обща сума</th>
                     <th>Дата</th>
                     <th>Действия</th>
-                </tr>
+                 </tr>
             </thead>
             <tbody>
                 {% for order in orders %}
@@ -131,7 +132,7 @@
                         {% endif %}
                     </td>
                     <td>
-                        <strong class="order-total">{{ order.total_price|floatformat:2 }} €.</strong>
+                        <strong class="order-total">{{ order.total_amount|floatformat:2 }} €</strong>
                     </td>
                     <td>
                         <div>
@@ -205,7 +206,7 @@
     </nav>
     {% endif %}
 
-    <!-- Статистика -->
+    <!-- Статистика за поръчките -->
     <div class="row mt-5">
         <div class="col-md-12">
             <div class="card border-0 shadow-sm stats-container">
@@ -219,25 +220,25 @@
                     <div class="row text-center">
                         <div class="col-md-3 mb-3">
                             <div class="p-3 bg-light rounded border stats-card" data-stat="total">
-                                <h3 class="text-primary mb-1">{{ total_orders }}</h3>
+                                <h3 class="text-primary mb-1">{{ total_orders|default:orders|length }}</h3>
                                 <p class="mb-0 text-muted">Общо поръчки</p>
                             </div>
                         </div>
                         <div class="col-md-3 mb-3">
                             <div class="p-3 bg-light rounded border stats-card" data-stat="revenue">
-                                <h3 class="text-success mb-1">{{ total_revenue|floatformat:2 }} €.</h3>
+                                <h3 class="text-success mb-1">{{ total_revenue|default:"0.00" }} €</h3>
                                 <p class="mb-0 text-muted">Общо приходи</p>
                             </div>
                         </div>
                         <div class="col-md-3 mb-3">
                             <div class="p-3 bg-light rounded border stats-card" data-stat="pending">
-                                <h3 class="text-info mb-1">{{ pending_orders }}</h3>
+                                <h3 class="text-info mb-1">{{ pending_orders|default:0 }}</h3>
                                 <p class="mb-0 text-muted">Чакащи поръчки</p>
                             </div>
                         </div>
                         <div class="col-md-3 mb-3">
                             <div class="p-3 bg-light rounded border stats-card" data-stat="average">
-                                <h3 class="text-warning mb-1">{{ avg_order_value|floatformat:2 }}€.</h3>
+                                <h3 class="text-warning mb-1">{{ avg_order_value|default:"0.00" }} €</h3>
                                 <p class="mb-0 text-muted">Средна стойност</p>
                             </div>
                         </div>
@@ -284,7 +285,7 @@
                 </a>
             </div>
             <div>
-                <a href="{% url 'products:product_list' %}" class="btn btn-outline-secondary nav-btn">
+                <a href="{% url 'core:index' %}" class="btn btn-outline-secondary nav-btn">
                     <i class="fas fa-home me-1"></i> Начална страница
                 </a>
                 {% if user.is_staff %}
@@ -301,6 +302,7 @@
 {% block extra_js %}
 <script src="{% static 'js/scripts.js' %}"></script>
 {% endblock %}
+
 
 
 
