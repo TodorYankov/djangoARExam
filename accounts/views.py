@@ -10,15 +10,12 @@ from django.contrib import messages
 from .models import CustomUser
 from .forms import CustomUserCreationForm, CustomUserChangeForm, ProfilePictureForm
 
-<<<<<<< HEAD
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 from django.contrib import messages
 from products.models import Product
 
-=======
->>>>>>> 029e97a88d363c55a2af3c732061de53b5bb95f1
 
 class RegisterView(SuccessMessageMixin, CreateView):
     """
@@ -103,11 +100,9 @@ class ProfileUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
 
 class ProfileDeleteView(LoginRequiredMixin, DeleteView):
     """Изтриване на профила на потребителя"""
-<<<<<<< HEAD
-    model = CustomUser  
-=======
-    model = CustomUser  # ← Променете User на CustomUser
->>>>>>> 029e97a88d363c55a2af3c732061de53b5bb95f1
+
+    model = CustomUser
+
     success_url = reverse_lazy('core:index')
     template_name = 'accounts/profile_confirm_delete.html'
 
@@ -242,7 +237,7 @@ class CustomLoginView(LoginView):
             messages.success(self.request, 'Успешен вход!')
 
         return super().form_valid(form)
-<<<<<<< HEAD
+
         
 # ========== VIEW-ТА ЗА ЛЮБИМИ ПРОДУКТИ ==========
  
@@ -273,7 +268,5 @@ class FavouriteListView(LoginRequiredMixin, TemplateView):
         context['total_favourites'] = self.request.user.favourites.count()
         return context
         
-=======
->>>>>>> 029e97a88d363c55a2af3c732061de53b5bb95f1
 
 

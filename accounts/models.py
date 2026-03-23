@@ -40,10 +40,7 @@ class CustomUser(AbstractUser):
     - Профилна снимка
     - Абонамент за бюлетин
     - Точки за лоялност
-<<<<<<< HEAD
     - Любими продукти (Many-to-many)
-=======
->>>>>>> 029e97a88d363c55a2af3c732061de53b5bb95f1
     """
 
     # ========== КОНТАКТНИ ПОЛЕТА ==========
@@ -90,7 +87,6 @@ class CustomUser(AbstractUser):
         help_text=_('Точки за лоялност, които могат да се използват за отстъпки')
     )
 
-<<<<<<< HEAD
     # ========== MANY-TO-MANY ВРЪЗКА ==========
     # Любими продукти - Many-to-many връзка с Product модела
     favourites = models.ManyToManyField(
@@ -101,9 +97,7 @@ class CustomUser(AbstractUser):
         help_text=_('Продукти, които потребителят е добавил в любими')
     )
 
-=======
->>>>>>> 029e97a88d363c55a2af3c732061de53b5bb95f1
-    # ========== МЕТАДАННИ ==========
+  # ========== МЕТАДАННИ ==========
     class Meta:
         permissions = [
             ("can_view_reports", "Може да преглежда отчети"),
@@ -230,7 +224,6 @@ class CustomUser(AbstractUser):
             return True
         return False
 
-<<<<<<< HEAD
     def add_to_favourites(self, product):
         """Добавя продукт към любимите"""
         if product not in self.favourites.all():
@@ -248,7 +241,4 @@ class CustomUser(AbstractUser):
     def is_favourite(self, product):
         """Проверява дали продуктът е в любимите"""
         return self.favourites.filter(id=product.id).exists()
-
-=======
->>>>>>> 029e97a88d363c55a2af3c732061de53b5bb95f1
 

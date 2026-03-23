@@ -17,7 +17,7 @@
         <h5 class="card-title text-truncate">{{ product.name }}</h5>
         <p class="card-text text-muted small">{{ product.description|truncatechars:60 }}</p>
         <div class="mt-2">
-            <span class="h5 text-primary">{{ product.price|floatformat:2 }} лв.</span>
+            <span class="h5 text-primary">{{ product.price|floatformat:2 }} €.</span>
             <span class="badge {% if product.is_available %}bg-success{% else %}bg-danger{% endif %} float-end">
                 {% if product.is_available %}В наличност{% else %}Изчерпан{% endif %}
             </span>
