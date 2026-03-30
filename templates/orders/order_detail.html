@@ -15,15 +15,27 @@
                     <table class="table table-bordered">
                         <tr>
                             <th>Клиент:</th>
-                            <td>{{ object.customer_name }}</td>
+                            <td>
+                                {% if object.user %}
+                                    {{ object.user.get_full_name|default:object.user.username }}
+                                {% else %}
+                                    {{ object.guest_name|default:"-" }}
+                                {% endif %}
+                            </td>
                         </tr>
                         <tr>
                             <th>Имейл:</th>
-                            <td>{{ object.customer_email }}</td>
+                            <td>
+                                {% if object.user %}
+                                    {{ object.user.email }}
+                                {% else %}
+                                    {{ object.guest_email|default:"-" }}
+                                {% endif %}
+                            </td>
                         </tr>
                         <tr>
                             <th>Телефон:</th>
-                            <td>{{ object.customer_phone }}</td>
+                            <td>{{ object.guest_phone|default:"-" }}</td>
                         </tr>
                         <tr>
                             <th>Дата:</th>
@@ -32,17 +44,33 @@
                         <tr>
                             <th>Статус:</th>
                             <td>
-                                {% if object.status == 'completed' %}
-                                    <span class="badge bg-success">Завършена</span>
+                                {% if object.status == 'delivered' %}
+                                    <span class="badge bg-success">Доставена</span>
+                                {% elif object.status == 'shipped' %}
+                                    <span class="badge bg-info">Изпратена</span>
                                 {% elif object.status == 'processing' %}
                                     <span class="badge bg-info">Обработва се</span>
                                 {% elif object.status == 'pending' %}
                                     <span class="badge bg-warning">Чакаща</span>
-                                {% else %}
+                                {% elif object.status == 'cancelled' %}
                                     <span class="badge bg-danger">Отказана</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ object.status }}</span>
                                 {% endif %}
                             </td>
                         </tr>
+                        {% if object.shipping_address %}
+                        <tr>
+                            <th>Адрес за доставка:</th>
+                            <td>{{ object.shipping_address|linebreaks }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if object.notes %}
+                        <tr>
+                            <th>Бележки:</th>
+                            <td>{{ object.notes|linebreaks }}</td>
+                        </tr>
+                        {% endif %}
                     </table>
 
                     <h5 class="mt-4">Продукти в поръчката</h5>
@@ -60,8 +88,8 @@
                             <tr>
                                 <td>{{ item.product.name }}</td>
                                 <td>{{ item.quantity }}</td>
-                                <td>{{ item.price_at_time|floatformat:2 }} €.</td>
-                                <td>{{ item.get_total|floatformat:2 }} €.</td>  <!-- 👈 Поправено -->
+                                <td>{{ item.price_at_time|floatformat:2 }} €</td>
+                                <td>{{ item.get_total|floatformat:2 }} €</td>
                             </tr>
                             {% empty %}
                             <tr>
@@ -72,7 +100,7 @@
                         <tfoot>
                             <tr class="table-active">
                                 <td colspan="3" class="text-end fw-bold">Обща сума:</td>
-                                <td class="fw-bold text-primary">{{ object.total_amount|floatformat:2 }} €.</td>
+                                <td class="fw-bold text-primary">{{ object.total_amount|floatformat:2 }} €</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -97,3 +125,4 @@
     </div>
 </div>
 {% endblock %}
+

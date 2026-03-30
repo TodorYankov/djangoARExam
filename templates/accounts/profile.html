@@ -7,28 +7,37 @@
 <div class="container">
     <div class="row">
         <!-- Лява колона - Снимка и статистика -->
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-camera"></i> Профилна снимка</h5>
-                </div>
-                <div class="card-body text-center">
-                    {% if profile_user.profile_picture %}
-                        <img src="{{ profile_user.profile_picture.url }}"
-                             alt="Profile Picture"
-                             class="profile-picture">
-                    {% else %}
-                        <div class="default-avatar mx-auto mb-3"
-                             style="width: 150px; height: 150px; font-size: 4rem; display: flex; align-items: center; justify-content: center;">
-                            {{ profile_user.get_full_name|first|default:profile_user.username|first|upper }}
-                        </div>
-                    {% endif %}
-
-                    <a href="{% url 'accounts:profile_picture' %}" class="btn btn-outline-primary btn-sm mt-3">
+       <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-camera"></i> Профилна снимка</h5>
+        </div>
+        <div class="card-body text-center">
+            {% if profile_user.profile_picture %}
+                <img src="{{ profile_user.profile_picture.url }}"
+                     alt="Profile Picture"
+                     class="rounded-circle mb-3"
+                     style="width: 150px; height: 150px; object-fit: cover;">
+                <div class="d-flex gap-2 justify-content-center flex-wrap">
+                    <a href="{% url 'accounts:profile_picture' %}" class="btn btn-outline-primary btn-sm">
                         <i class="fas fa-camera"></i> Смени снимка
                     </a>
+                    <a href="{% url 'accounts:profile_picture_delete' %}"
+                       class="btn btn-outline-danger btn-sm"
+                       onclick="return confirm('Сигурни ли сте, че искате да изтриете профилната си снимка?');">
+                        <i class="fas fa-trash-alt"></i> Изтрий снимка
+                    </a>
                 </div>
-            </div>
+            {% else %}
+                <div class="default-avatar mx-auto mb-3 d-flex align-items-center justify-content-center bg-light rounded-circle"
+                     style="width: 150px; height: 150px; font-size: 4rem; color: #6c757d;">
+                    {{ profile_user.get_full_name|first|default:profile_user.username|first|upper }}
+                </div>
+                <a href="{% url 'accounts:profile_picture' %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-camera"></i> Добави снимка
+                </a>
+            {% endif %}
+        </div>
+    </div>
 
             <div class="card">
                 <div class="card-header bg-info text-white">
@@ -54,6 +63,34 @@
 
         <!-- Дясна колона - Лична информация -->
         <div class="col-md-8">
+            <!-- ПРЕДУПРЕДИТЕЛНО СЪОБЩЕНИЕ ЗА ЛИПСВАЩИ ДАННИ ЗА ПОРЪЧКА -->
+            {% if not profile_user.shipping_address or not profile_user.phone_number %}
+            <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-truck fa-lg me-3 mt-1"></i>
+                    <div class="flex-grow-1">
+                        <strong><i class="fas fa-gift me-1"></i> За по-лесно пазаруване!</strong>
+                        <p class="mb-1">
+                            Моля, попълнете
+                            {% if not profile_user.shipping_address %}
+                                <strong class="text-primary">адрес за доставка</strong>
+                                {% if not profile_user.phone_number %} и {% endif %}
+                            {% endif %}
+                            {% if not profile_user.phone_number %}
+                                <strong class="text-primary">телефон</strong>
+                            {% endif %}
+                            по-долу. Така те ще се попълват автоматично при всяка поръчка!
+                        </p>
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Можете да редактирате тези данни по всяко време.
+                        </small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+            {% endif %}
+
             <div class="card">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="fas fa-user"></i> Лична информация</h5>
@@ -81,11 +118,39 @@
                         </tr>
                         <tr>
                             <th><i class="fas fa-phone"></i> Телефон:</th>
-                            <td>{{ profile_user.formatted_phone }}</td>
+                            <td>
+                                {% if profile_user.phone_number %}
+                                    <strong>{{ profile_user.phone_number }}</strong>
+                                {% else %}
+                                    <span class="text-muted">Не е въведен</span>
+                                    <a href="{% url 'accounts:profile_edit' %}" class="btn btn-sm btn-outline-primary ms-2">
+                                        <i class="fas fa-plus"></i> Добави
+                                    </a>
+                                {% endif %}
+                            </td>
                         </tr>
                         <tr>
-                            <th><i class="fas fa-map-marker-alt"></i> Адрес:</th>
-                            <td>{{ profile_user.address|default:"<span class='text-muted'>Не е въведен</span>"|linebreaks }}</td>
+                            <th><i class="fas fa-map-marker-alt"></i> Адрес за доставка:</th>
+                            <td>
+                                {% if profile_user.shipping_address %}
+                                    <strong>{{ profile_user.shipping_address|linebreaks }}</strong>
+                                {% else %}
+                                    <span class="text-muted">Не е въведен</span>
+                                    <a href="{% url 'accounts:profile_edit' %}" class="btn btn-sm btn-outline-primary ms-2">
+                                        <i class="fas fa-plus"></i> Добави
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><i class="fas fa-map-marker-alt"></i> Друг адрес:</th>
+                            <td>
+                                {% if profile_user.address %}
+                                    <strong>{{ profile_user.address|linebreaks }}</strong>
+                                {% else %}
+                                    <span class="text-muted">Не е въведен</span>
+                                {% endif %}
+                            </td>
                         </tr>
                         <tr>
                             <th><i class="fas fa-birthday-cake"></i> Дата на раждане:</th>

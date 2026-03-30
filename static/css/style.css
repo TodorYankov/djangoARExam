@@ -1,4 +1,4 @@
-/* static/css/style.css - TechShop Оптимизиран CSS (само използвани стилове) */
+/* static/css/style.css - TechShop Оптимизиран CSS */
 
 /* ========== CSS ПРОМЕНЛИВИ ========== */
 :root {
@@ -134,6 +134,90 @@ a:hover { color: var(--primary-dark); }
   background: rgba(0, 0, 0, 0.03);
   border-top: 1px solid var(--gray-200);
   padding: 1rem 1.25rem;
+}
+
+/* Продуктови карти */
+.product-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-card .card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.product-card .card-text {
+  flex: 1;
+  margin-bottom: 15px;
+}
+
+.product-image-container {
+  height: 200px;
+  overflow: hidden;
+  margin: 10px 0;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.product-price {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #28a745;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+/* ========== ДЕТАЙЛЕН ИЗГЛЕД НА ПРОДУКТ ========== */
+.product-detail-image-container {
+  text-align: center;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.product-detail-image {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+}
+
+.product-price-box {
+  background-color: #f0f7ff;
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.product-description {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.product-specifications {
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  padding: 15px;
+}
+
+.product-actions .btn {
+  padding: 12px;
+  font-size: 1.1rem;
 }
 
 /* ========== ФОРМУЛЯРИ ========== */
@@ -440,6 +524,116 @@ footer a:hover {
   animation: fadeInUp 0.6s ease-out;
 }
 
+/* Анимации за елементи */
+.fade-in,
+.category-card,
+.order-row,
+.stats-card {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.5s ease;
+}
+
+.fade-in.animated,
+.category-card.animated,
+.order-row.animated,
+.stats-card.animated {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ========== SCROLL TO TOP ========== */
+.scroll-to-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 3rem;
+  height: 3rem;
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scroll-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.scroll-to-top:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ========== ПРЕГЛЕД НА СНИМКА ========== */
+.image-preview {
+  max-width: 200px;
+  max-height: 200px;
+  margin-top: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.no-image-placeholder {
+  background-color: #f8f9fa;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* ========== КОЛИЧКА СТРАНИЦА ========== */
+.cart-item-image {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.quantity-input {
+  width: 70px;
+  text-align: center;
+}
+
+.cart-summary {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  position: sticky;
+  top: 20px;
+}
+
+.cart-item {
+  transition: all 0.3s ease;
+  border-left: 3px solid transparent;
+}
+
+.cart-item:hover {
+  background-color: #f8f9fa;
+  border-left-color: var(--primary, #0d6efd);
+}
+
+.empty-cart {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-cart i {
+  font-size: 80px;
+  color: #dee2e6;
+  margin-bottom: 20px;
+}
+
 /* ========== UTILITY КЛАСОВЕ ========== */
 .text-center { text-align: center; }
 .text-muted { color: var(--gray-600); }
@@ -462,6 +656,21 @@ footer a:hover {
   .horizontal-menu .navbar-nav .nav-link { padding: 0.5rem 1rem; }
   .btn, .btn-lg { width: 100%; margin-bottom: 0.5rem; }
   .profile-picture { width: 100px; height: 100px; }
+
+  /* Количка мобилна адаптация */
+  .cart-item-image {
+    width: 60px;
+    height: 60px;
+  }
+
+  .quantity-input {
+    width: 60px;
+  }
+
+  .cart-summary {
+    position: static;
+    margin-top: 20px;
+  }
 }
 
 @media (max-width: 576px) {
@@ -469,187 +678,56 @@ footer a:hover {
   .table { font-size: 0.875rem; }
   .form-control { padding: 0.5rem 0.75rem; }
 }
-/* За преглед на снимка */
-.image-preview {
-    max-width: 200px;
-    max-height: 200px;
-    margin-top: 10px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* За scroll to top бутон */
-.scroll-to-top {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    width: 3rem;
-    height: 3rem;
-    background: var(--gradient-primary, linear-gradient(135deg, #2563eb, #1e40af));
-    color: white;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.scroll-to-top.visible {
-    opacity: 1;
-    visibility: visible;
-}
-
-.scroll-to-top:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* Анимации за елементи */
-.fade-in,
-.category-card,
-.order-row,
-.stats-card {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: all 0.5s ease;
-}
-
-.fade-in.animated,
-.category-card.animated,
-.order-row.animated,
-.stats-card.animated {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* За равни карти */
-.product-card {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-.product-card .card-body {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-}
-
-.product-card .card-text {
-    flex: 1; /* Това ще избута бутона надолу */
-    margin-bottom: 15px;
-}
-
-.product-image-container {
-    height: 200px;
-    overflow: hidden;
-    margin: 10px 0;
-    border-radius: 8px;
-    background-color: #f8f9fa;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.product-image-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-}
-
-.product-price {
-    font-size: 1.25rem;
-    font-weight: bold;
-    color: #28a745;
-    margin-top: 10px;
-    margin-bottom: 10px;
-}
-/* Контейнер за изображение на продукт */
-.product-image-container {
-    height: 200px;
-    overflow: hidden;
-    margin-top: 10px;
-    border-radius: 8px;
-    background-color: #f8f9fa;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Самото изображение */
-.product-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    border-radius: 8px;
-}
-
-/* За placeholder, когато няма снимка */
-.no-image-placeholder {
-    background-color: #f8f9fa;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-<<<<<<< HEAD
-}
-/* ========== PRODUCT DETAIL PAGE STYLES ========== */
-
-/* Контейнер за изображение на продукт в детайлния изглед */
-.product-detail-image-container {
-    text-align: center;
-    background-color: #f8f9fa;
+/* ========== СТРАНИЦА ЗА ПОРЪЧКА ========== */
+.order-summary {
+    background: #f8f9fa;
     border-radius: 12px;
     padding: 20px;
-    margin-bottom: 20px;
+    position: sticky;
+    top: 20px;
 }
 
-/* Изображение в детайлния изглед */
-.product-detail-image {
-    max-width: 100%;
-    max-height: 400px;
-    object-fit: contain;
+.product-image-sm {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 8px;
 }
 
-/* Ценова кутия */
-.product-price-box {
-    background-color: #f0f7ff;
-    padding: 15px;
-    border-radius: 10px;
-    text-align: center;
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
 
-/* Описание на продукта */
-.product-description {
-    background-color: #f9f9f9;
-    padding: 15px;
-    border-radius: 10px;
+/* Мобилна адаптация */
+@media (max-width: 768px) {
+    .order-summary {
+        position: static;
+        margin-top: 20px;
+    }
+}
+.profile-picture {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 1rem;
 }
 
-/* Спецификации на продукта */
-.product-specifications {
-    background-color: #fff;
-    border: 1px solid #dee2e6;
-    border-radius: 10px;
-    padding: 15px;
+.default-avatar {
+    width: 150px;
+    height: 150px;
+    background-color: #f8f9fa;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    color: #6c757d;
+    margin: 0 auto;
 }
 
-/* Бутони за действие */
-.product-actions .btn {
-    padding: 12px;
-    font-size: 1.1rem;
+/* За по-добър външен вид на бутоните */
+.d-flex.gap-2 {
+    gap: 0.5rem !important;
 }
-
-/* ========== END PRODUCT DETAIL PAGE STYLES ========== */
-=======
-}
->>>>>>> 029e97a88d363c55a2af3c732061de53b5bb95f1

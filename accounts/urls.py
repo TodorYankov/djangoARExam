@@ -12,8 +12,10 @@ urlpatterns = [
     path('profile/', views.ProfileView.as_view(), name='profile'),
     path('profile/edit/', views.ProfileUpdateView.as_view(), name='profile_edit'),
     path('profile/picture/', views.ProfilePictureUpdateView.as_view(), name='profile_picture'),
+    path('profile/picture/delete/', views.ProfilePictureDeleteView.as_view(), name='profile_picture_delete'),
     path('dashboard/', views.DashboardView.as_view(), name='dashboard'),
     path('profile/delete/', views.UserDeleteView.as_view(), name='profile_delete'),
+
     # Login/Logout
     path('login/', auth_views.LoginView.as_view(
         template_name='accounts/login.html',
@@ -58,8 +60,8 @@ urlpatterns = [
              template_name='accounts/password_reset_complete.html'
          ), name='password_reset_complete'),
 
-    # ---
+    # Любими продукти
     path('toggle-favourite/<int:product_id>/', views.ToggleFavouriteView.as_view(), name='toggle_favourite'),
     path('favourites/', views.FavouriteListView.as_view(), name='favourites'),
-]    
+]
 

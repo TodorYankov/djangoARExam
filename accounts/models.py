@@ -51,10 +51,29 @@ class CustomUser(AbstractUser):
         help_text=_('Мобилен телефон за връзка (във формат 0888 123 456)')
     )
 
+    # НОВО: Псевдоним за phone_number за съвместимост с поръчките
+    @property
+    def phone(self):
+        """Псевдоним за phone_number за съвместимост с поръчките"""
+        return self.phone_number
+
+    @phone.setter
+    def phone(self, value):
+        """Setter за phone псевдоним"""
+        self.phone_number = value
+
     address = models.TextField(
         blank=True,
         verbose_name=_('Адрес'),
         help_text=_('Адрес за доставка (улица, номер, град, пощенски код)')
+    )
+
+    # НОВО: Адрес за доставка (може да е различен от основния адрес)
+    shipping_address = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name=_('Адрес за доставка'),
+        help_text=_('Адрес за доставка на поръчките (ако е различен от основния адрес)')
     )
 
     # ========== ЛИЧНА ИНФОРМАЦИЯ ==========
@@ -97,7 +116,7 @@ class CustomUser(AbstractUser):
         help_text=_('Продукти, които потребителят е добавил в любими')
     )
 
-  # ========== МЕТАДАННИ ==========
+    # ========== МЕТАДАННИ ==========
     class Meta:
         permissions = [
             ("can_view_reports", "Може да преглежда отчети"),
@@ -204,9 +223,14 @@ class CustomUser(AbstractUser):
             self.first_name and
             self.last_name and
             self.phone_number and
-            self.address and
+            (self.address or self.shipping_address) and
             self.date_of_birth
         )
+
+    @property
+    def default_shipping_address(self):
+        """Връща адреса за доставка по подразбиране"""
+        return self.shipping_address or self.address
 
     def add_loyalty_points(self, points):
         """Добавя точки за лоялност към потребителя"""
@@ -241,4 +265,3 @@ class CustomUser(AbstractUser):
     def is_favourite(self, product):
         """Проверява дали продуктът е в любимите"""
         return self.favourites.filter(id=product.id).exists()
-

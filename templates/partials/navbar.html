@@ -1,6 +1,7 @@
 <!-- templates/partials/navbar.html -->
 <nav class="navbar navbar-expand-lg horizontal-menu">
     <div class="container-fluid">
+        <!-- Лого - само едно, без дублиране -->
         <a class="navbar-brand fw-bold" href="{% url 'core:index' %}" style="color: var(--primary-color);">
             <i class="fas fa-laptop-code me-2"></i>TechShop
         </a>
@@ -11,7 +12,7 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav mx-auto">
-                <!-- Начало -->
+                <!-- Начало - само тук, без дублиране -->
                 <li class="nav-item">
                     <a class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}"
                        href="{% url 'core:index' %}">
@@ -33,12 +34,23 @@
                     </a>
                 </li>
 
-                <!-- Поръчки - само за автентикирани потребители -->
+                <!-- Количка - достъпна за всички -->
+                <li class="nav-item">
+                    <a class="nav-link position-relative" href="{% url 'orders:cart' %}" id="cart-link">
+                        <i class="fas fa-shopping-cart"></i> Количка
+                        <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                              style="display: {% if request.session.cart %}inline-block{% else %}none{% endif %};">
+                            {{ request.session.cart|length }}
+                        </span>
+                    </a>
+                </li>
+
+                <!-- Поръчки (история) - само за автентикирани потребители -->
                 {% if user.is_authenticated %}
                 <li class="nav-item">
                     <a class="nav-link {% if 'order' in request.resolver_match.url_name %}active{% endif %}"
                        href="{% url 'orders:order_list' %}">
-                        <i class="fas fa-shopping-cart"></i> Поръчки
+                        <i class="fas fa-history"></i> История
                     </a>
                 </li>
                 {% endif %}
@@ -69,7 +81,7 @@
                 </li>
                 {% endif %}
 
-                <!-- Информация - достъпно за всички -->
+                <!-- Информация - с икона i -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                         <i class="fas fa-info-circle"></i> Информация
@@ -103,18 +115,25 @@
                         </li>
                     </ul>
                 </li>
+            </ul>
 
-                <!-- Потребителско меню -->
+            <!-- Потребителско меню - отделен блок вдясно, с текст на два реда ако е необходимо -->
+            <ul class="navbar-nav ms-auto">
                 {% if user.is_authenticated %}
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
                         {% if user.profile_picture %}
                             <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}"
-                                 class="rounded-circle" style="width: 25px; height: 25px; object-fit: cover;">
+                                 class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
                         {% else %}
-                            <i class="fas fa-user-circle"></i>
+                            <i class="fas fa-user-circle fa-lg me-2"></i>
                         {% endif %}
-                        {{ user.get_full_name|default:user.username }}
+                        <div class="d-flex flex-column align-items-start lh-1">
+                            <span class="fw-bold">{{ user.get_full_name|default:user.username }}</span>
+                            <small class="text-muted" style="font-size: 0.7rem;">
+                                {% if user.is_staff %}Администратор{% else %}Клиент{% endif %}
+                            </small>
+                        </div>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>

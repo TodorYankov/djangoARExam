@@ -1,84 +1,300 @@
-<!-- techShop/templates/orders/order_form.html -->
+# templates/orders/order_form.html
 {% extends 'base.html' %}
-{% load static %}  <!-- 👈 ТОВА ЛИПСВАШЕ! -->
+{% load static %}
 
-{% block title %}Нова поръчка{% endblock %}
+{% block title %}Завършване на поръчката - TechShop{% endblock %}
+
+{% block extra_css %}
+<!-- Стиловете са в style.css -->
+{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container py-4">
     <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card">
-                <div class="card-header">
-                    <h4>Оформяне на поръчка</h4>
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'core:index' %}">Начало</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'orders:cart' %}">Количка</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Завършване на поръчката</li>
+                </ol>
+            </nav>
+
+            <h1 class="mb-4">
+                <i class="fas fa-check-circle text-success me-2"></i>
+                Завършване на поръчката
+            </h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Форма за поръчка -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-truck me-2"></i>
+                        Данни за доставка
+                    </h5>
                 </div>
                 <div class="card-body">
+                    <!-- ПРЕДУПРЕДИТЕЛНО СЪОБЩЕНИЕ ЗА ЛИПСВАЩИ ДАННИ -->
+                    {% if not user.shipping_address or not user.phone_number %}
+                    <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert" id="missingDataAlert">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-user-edit fa-lg me-3 mt-1"></i>
+                            <div class="flex-grow-1">
+                                <strong>За по-бързо пазаруване!</strong>
+                                <p class="mb-1">Добавете адрес и телефон в
+                                    <a href="{% url 'accounts:profile' %}" class="alert-link fw-bold">
+                                        <i class="fas fa-user me-1"></i>профила си
+                                    </a>,
+                                    за да не ги въвеждате при всяка поръчка.
+                                </p>
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Можете да въведете данни директно тук за текущата поръчка.
+                                </small>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <form method="post" id="orderForm">
                         {% csrf_token %}
 
-                        <!-- Данни за контакт -->
-                        <fieldset class="mb-4">
-                            <legend>Контактни данни</legend>
-                            {{ form.as_p }}
-                        </fieldset>
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
 
-                        <!-- Списък с продукти (formset) -->
-                        <fieldset class="mb-4">
-                            <legend>Продукти</legend>
-                            {{ formset.management_form }}
+                        <!-- Адрес за доставка -->
+                        <div class="mb-4">
+                            <label for="{{ form.shipping_address.id_for_label }}" class="form-label fw-bold">
+                                <i class="fas fa-map-marker-alt me-1 text-primary"></i>
+                                Адрес за доставка <span class="text-danger">*</span>
+                            </label>
+                            {{ form.shipping_address }}
+                            {% if form.shipping_address.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.shipping_address.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Моля, въведете пълен адрес (град, улица, номер, етаж, вход)
+                            </div>
+                        </div>
 
-                            <table class="table table-bordered" id="item-formset">
-                                <thead>
+                        <!-- Телефон -->
+                        <div class="mb-4">
+                            <label for="{{ form.guest_phone.id_for_label }}" class="form-label fw-bold">
+                                <i class="fas fa-phone me-1 text-primary"></i>
+                                Телефон <span class="text-danger">*</span>
+                            </label>
+                            {{ form.guest_phone }}
+                            {% if form.guest_phone.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.guest_phone.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Телефон за връзка при доставка
+                            </div>
+                        </div>
+
+                        <!-- Бележки (опционално) -->
+                        <div class="mb-4">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label fw-bold">
+                                <i class="fas fa-sticky-note me-1 text-primary"></i>
+                                Бележки към поръчката
+                            </label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.notes.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Допълнителна информация (вход, етаж, междучасови, специални изисквания)
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Продукти в поръчката -->
+                        <h5 class="mb-3">
+                            <i class="fas fa-box me-2 text-primary"></i>
+                            Продукти в поръчката
+                        </h5>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
                                     <tr>
                                         <th>Продукт</th>
-                                        <th>Количество</th>
-                                        <th>Действие</th>  <!-- 👈 Променено от "Изтриване" -->
-                                    </tr>
+                                        <th class="text-center">Цена</th>
+                                        <th class="text-center">Количество</th>
+                                        <th class="text-end">Общо</th>
+                                     <tr>
                                 </thead>
                                 <tbody>
-                                    {% for item_form in formset %}
-                                    <tr class="formset-row">
-                                        <td>{{ item_form.product }}</td>
-                                        <td>{{ item_form.quantity }}</td>
-                                        <td class="text-center">
-                                            {% if item_form.instance.pk %}
-                                                {{ item_form.DELETE }}
-                                                <label for="{{ item_form.DELETE.id_for_label }}" class="text-danger">Изтрий</label>
-                                            {% else %}
-                                                <!-- Бутон за изтриване за нови редове -->
-                                                <button type="button" class="btn btn-sm btn-danger delete-row">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            {% endif %}
+                                    {% for item in cart %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if item.image %}
+                                                    <img src="{{ item.image }}" alt="{{ item.name }}"
+                                                         class="product-image-sm me-3">
+                                                {% else %}
+                                                    <div class="product-image-sm bg-light d-flex align-items-center justify-content-center me-3 rounded">
+                                                        <i class="fas fa-laptop fa-2x text-secondary"></i>
+                                                    </div>
+                                                {% endif %}
+                                                <div>
+                                                    <strong>{{ item.name }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">Артикул: {{ item.product_id }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            {{ item.price|floatformat:2 }} €
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            {{ item.quantity }}
+                                        </td>
+                                        <td class="text-end align-middle fw-bold text-primary">
+                                            {% widthratio item.price 1 item.quantity %} €
                                         </td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
-                            </table>
-
-                            <!-- Скрит шаблон за нов ред (JavaScript) -->
-                            <div id="empty-form-template" style="display: none;">  <!-- 👈 Променено id -->
-                                <table>
-                                    <tr class="formset-row">
-                                        <td>{{ formset.empty_form.product }}</td>
-                                        <td>{{ formset.empty_form.quantity }}</td>
-                                        <td class="text-center">
-                                            <button type="button" class="btn btn-sm btn-danger delete-row">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </td>
+                                <tfoot class="table-active">
+                                    <tr>
+                                        <td colspan="3" class="text-end fw-bold">Обща сума:</td>
+                                        <td class="text-end fw-bold text-primary fs-5">{{ total|floatformat:2 }} €</td>
                                     </tr>
-                                </table>
-                            </div>
+                                </tfoot>
+                            </table>
+                        </div>
 
-                            <!-- Бутон за добавяне на нов ред -->
-                            <button type="button" id="add-item" class="btn btn-sm btn-secondary mt-2">  <!-- 👈 Променено id -->
-                                <i class="fas fa-plus"></i> Добави още продукти
+                        <!-- Бутони за действие -->
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <a href="{% url 'orders:cart' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i> Обратно към количката
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg" id="submitOrderBtn">
+                                <i class="fas fa-check-circle me-2"></i> Потвърди поръчката
                             </button>
-                        </fieldset>
-
-                        <button type="submit" class="btn btn-primary w-100">Изпрати поръчка</button>
+                        </div>
                     </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Обобщение на поръчката (дясна колона) -->
+        <div class="col-lg-4">
+            <div class="order-summary shadow-sm">
+                <h5 class="mb-3">
+                    <i class="fas fa-receipt me-2 text-primary"></i>
+                    Обобщение
+                </h5>
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Брой артикули:</span>
+                    <strong>{{ cart|length }}</strong>
+                </div>
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Общо количество:</span>
+                    <strong>
+                        {% for item in cart %}
+                            {% if forloop.first %}
+                                {{ item.quantity }}
+                            {% else %}
+                                + {{ item.quantity }}
+                            {% endif %}
+                        {% endfor %}
+                    </strong>
+                </div>
+
+                <hr>
+
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="h6 mb-0">Обща сума:</span>
+                    <span class="h5 text-primary fw-bold mb-0">{{ total|floatformat:2 }} €</span>
+                </div>
+
+                <!-- Информация за доставка -->
+                {% if total < 100 %}
+                    <div class="alert alert-info small mb-3">
+                        <i class="fas fa-truck me-2"></i>
+                        Добавете още <strong>{{ 100|floatformat:2 }} €</strong> за безплатна доставка!
+                    </div>
+                {% else %}
+                    <div class="alert alert-success small mb-3">
+                        <i class="fas fa-truck me-2"></i>
+                        Безплатна доставка! 🎉
+                    </div>
+                {% endif %}
+
+                <!-- Детайли за плащане -->
+                <div class="mt-3 pt-2 border-top">
+                    <small class="text-muted d-block mb-2">
+                        <i class="fas fa-credit-card me-1"></i> Плащане при доставка
+                    </small>
+                    <small class="text-muted d-block mb-2">
+                        <i class="fas fa-undo-alt me-1"></i> 14-дневно право на връщане
+                    </small>
+                    <small class="text-muted d-block mb-2">
+                        <i class="fas fa-shield-alt me-1"></i> Защитена покупка
+                    </small>
+                    <small class="text-muted d-block">
+                        <i class="fas fa-clock me-1"></i> Доставка: 2-5 работни дни
+                    </small>
+                </div>
+            </div>
+
+            <!-- Полезни връзки -->
+            <div class="card mt-4 border-0 bg-light">
+                <div class="card-body">
+                    <h6 class="mb-3">
+                        <i class="fas fa-question-circle text-primary me-2"></i>
+                        Нуждаете се от помощ?
+                    </h6>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <a href="{% url 'core:contact' %}" class="text-decoration-none">
+                                <i class="fas fa-envelope me-2 text-muted"></i>
+                                Свържете се с нас
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{% url 'core:faq' %}" class="text-decoration-none">
+                                <i class="fas fa-question-circle me-2 text-muted"></i>
+                                Често задавани въпроси
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'core:terms' %}" class="text-decoration-none">
+                                <i class="fas fa-file-contract me-2 text-muted"></i>
+                                Общи условия
+                            </a>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -87,93 +303,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- Тестов JavaScript -->
-<script>
-    console.log('Директен JavaScript работи!');
-    // alert('Директен JavaScript работи!');  // Коментирано, за да не дразни
-</script>
-
-<!-- Външен JavaScript файл -->
-<script src="{% static 'js/order_form.js' %}"></script>
-
-<!-- Добавъчен JavaScript за гаранция -->
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM зареден - inline fallback');
-
-        const addButton = document.getElementById('add-item');
-        if (addButton) {
-            console.log('Бутон намерен в inline fallback');
-
-            addButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                console.log('Бутон натиснат - inline fallback');
-
-                const totalForms = document.getElementById('id_items-TOTAL_FORMS');
-                const tbody = document.querySelector('#item-formset tbody');
-                const emptyTemplate = document.getElementById('empty-form-template');
-
-                if (!totalForms || !tbody || !emptyTemplate) {
-                    alert('Грешка: Не могат да се намерят необходимите елементи!');
-                    return;
-                }
-
-                const formCount = parseInt(totalForms.value);
-                console.log('Текущ брой форми:', formCount);
-
-                // Клониране на шаблона
-                const newRow = emptyTemplate.cloneNode(true);
-                newRow.id = '';
-                newRow.style.display = '';
-
-                // Замяна на __prefix__
-                let html = newRow.innerHTML;
-                html = html.replace(/__prefix__/g, formCount);
-                newRow.innerHTML = html;
-
-                // Добавяне на новия ред
-                const newTr = newRow.querySelector('tr');
-                tbody.appendChild(newTr);
-
-                // Добавяне на event listener за бутона за изтриване
-                const deleteBtn = newTr.querySelector('.delete-row');
-                if (deleteBtn) {
-                    deleteBtn.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        const row = e.target.closest('tr');
-                        if (row) {
-                            row.remove();
-                            totalForms.value = tbody.children.length;
-                        }
-                    });
-                }
-
-                // Актуализиране на броя
-                totalForms.value = formCount + 1;
-                console.log('Нов брой форми:', totalForms.value);
-            });
-        } else {
-            console.error('Бутон с id="add-item" не е намерен!');
-        }
-
-        // Добавяне на event listeners за съществуващите бутони за изтриване
-        document.querySelectorAll('.delete-row').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const row = e.target.closest('tr');
-                if (row) {
-                    row.remove();
-                    const totalForms = document.getElementById('id_items-TOTAL_FORMS');
-                    const tbody = document.querySelector('#item-formset tbody');
-                    if (totalForms && tbody) {
-                        totalForms.value = tbody.children.length;
-                    }
-                }
-            });
-        });
-    });
-</script>
+<!-- JavaScript функционалността идва от scripts.js -->
 {% endblock %}
-
 
 

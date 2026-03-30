@@ -1,10 +1,13 @@
 # accounts/admin.py
+from django.utils.safestring import mark_safe
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from django.utils.html import format_html
 from .models import CustomUser
+
+
 
 
 class CustomUserAdmin(UserAdmin):
@@ -96,7 +99,7 @@ class CustomUserAdmin(UserAdmin):
                 '<img src="{}" width="40" height="40" style="border-radius: 50%; object-fit: cover;" />',
                 obj.profile_picture.url
             )
-        return format_html('<span style="color: #999;">📷 Без снимка</span>')
+        return mark_safe('<span style="color: #999;">📷 Без снимка</span>')
 
     profile_picture_thumbnail.short_description = _('Снимка')
 

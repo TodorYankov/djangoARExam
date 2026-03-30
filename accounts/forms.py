@@ -2,7 +2,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.core.exceptions import ValidationError
-# from django.utils.translation import gettext_lazy as _   # Това е импорт за интернационализация (превод на текстове), който е необходим, ако поддържам множество езици.
 from datetime import date
 from .models import CustomUser
 import re
@@ -30,6 +29,17 @@ class CustomUserCreationForm(UserCreationForm):
         })
     )
 
+    # НОВО: Добавен адрес за доставка
+    shipping_address = forms.CharField(
+        required=False,
+        label='Адрес за доставка',
+        widget=forms.Textarea(attrs={
+            'rows': 3,
+            'placeholder': 'град, улица, номер, вход, етаж',
+            'class': 'form-control'
+        })
+    )
+
     # Добавяне на поле за потвърждение на имейл
     confirm_email = forms.EmailField(
         required=True,
@@ -43,12 +53,13 @@ class CustomUserCreationForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = CustomUser
         fields = ('username', 'email', 'first_name', 'last_name',
-                  'phone_number', 'address', 'date_of_birth')
+                  'phone_number', 'shipping_address', 'address', 'date_of_birth')
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control'}),
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'address': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+            'address': forms.Textarea(
+                attrs={'rows': 3, 'class': 'form-control', 'placeholder': 'Друг адрес (ако е различен)'}),
             'date_of_birth': forms.DateInput(attrs={
                 'type': 'date',
                 'class': 'form-control'
@@ -109,6 +120,8 @@ class CustomUserCreationForm(UserCreationForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
+        user.phone = self.cleaned_data.get('phone_number')  # Мапиране към phone
+        user.shipping_address = self.cleaned_data.get('shipping_address')
         if commit:
             user.save()
             # Автоматично добавяне към група Customers
@@ -127,17 +140,18 @@ class CustomUserChangeForm(UserChangeForm):
     class Meta:
         model = CustomUser
         fields = ('username', 'email', 'first_name', 'last_name',
-                  'phone_number', 'address', 'date_of_birth',
+                  'phone_number', 'shipping_address', 'date_of_birth',
                   'profile_picture', 'newsletter_subscribed')
+        # ЗАБЕЛЕЖКА: Премахнах 'address' от полетата, за да не се използва
         widgets = {
             'date_of_birth': forms.DateInput(attrs={
                 'type': 'date',
                 'class': 'form-control'
             }),
-            'address': forms.Textarea(attrs={
+            'shipping_address': forms.Textarea(attrs={
                 'rows': 3,
                 'class': 'form-control',
-                'placeholder': 'ул. Примерна 123, София 1000'
+                'placeholder': 'град, улица, номер, вход, етаж'
             }),
             'profile_picture': forms.FileInput(attrs={
                 'class': 'form-control-file',
@@ -151,7 +165,7 @@ class CustomUserChangeForm(UserChangeForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Направете username полето read-only (пример за read-only поле)
+        # Направете username полето read-only
         self.fields['username'].widget.attrs['readonly'] = True
         self.fields['username'].help_text = 'Потребителското име не може да се променя'
 
@@ -169,10 +183,11 @@ class CustomUserChangeForm(UserChangeForm):
         self.fields['last_name'].label = 'Фамилия'
         self.fields['newsletter_subscribed'].label = 'Абонамент за бюлетин'
         self.fields['profile_picture'].label = 'Профилна снимка'
+        self.fields['shipping_address'].label = 'Адрес за доставка'
 
         # Добавяне на help_text
         self.fields['phone_number'].help_text = 'Въведете телефон за връзка (напр. 0888 123 456)'
-        self.fields['address'].help_text = 'Въведете пълен адрес за доставка'
+        self.fields['shipping_address'].help_text = 'Въведете пълен адрес за доставка (град, улица, номер, вход, етаж)'
         self.fields['profile_picture'].help_text = 'Качете снимка (макс. 5MB, формати: JPG, PNG, GIF)'
 
     def clean_email(self):
@@ -193,24 +208,48 @@ class CustomUserChangeForm(UserChangeForm):
         return phone
 
     def clean_profile_picture(self):
-        """Валидация на профилна снимка"""
         picture = self.cleaned_data.get('profile_picture')
-        if picture:
-            # Проверка за размер (макс 5MB)
-            if picture.size > 5 * 1024 * 1024:
-                raise ValidationError('Файлът е твърде голям. Максималният размер е 5MB.')
 
-            # Проверка за тип на файла
-            valid_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+        # Проверка дали няма качен файл
+        if not picture:
+            return picture
+
+        # Проверка дали е празен низ (случва се при празно поле за снимка)
+        if picture == '':
+            return None
+
+        # След това безопасно проверяваме content_type
+        valid_types = ['image/jpeg', 'image/png', 'image/gif']
+
+        # За качени файлове, проверяваме content_type
+        if hasattr(picture, 'content_type'):
             if picture.content_type not in valid_types:
-                raise ValidationError('Моля, качете валидно изображение (JPG, PNG, GIF, WebP).')
+                raise forms.ValidationError('Моля, качете снимка във формат JPEG, PNG или GIF.')
+        else:
+            # Ако няма content_type, определяме от разширението на файла
+            import imghdr
+            import os
+
+            # Взимаме разширението на файла
+            ext = os.path.splitext(picture.name)[1].lower()
+            if ext not in ['.jpg', '.jpeg', '.png', '.gif']:
+                raise forms.ValidationError('Моля, качете снимка във формат JPEG, PNG или GIF.')
 
         return picture
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        # Мапиране на phone_number към phone (за съвместимост)
+        user.phone = self.cleaned_data.get('phone_number')
+        # shipping_address вече се запазва автоматично от формата
+        if commit:
+            user.save()
+        return user
 
 
 class ProfilePictureForm(forms.ModelForm):
     """
-    Отделна форма само за профилна снимка (пример за форма с едно поле)
+    Отделна форма само за профилна снимка
     """
 
     class Meta:
@@ -234,22 +273,35 @@ class ProfilePictureForm(forms.ModelForm):
         """Валидация на профилна снимка"""
         picture = self.cleaned_data.get('profile_picture')
 
+        # Ако няма файл - не правим нищо
         if not picture:
-            raise ValidationError('Моля, изберете файл за качване.')
+            return picture
+
+        # Ако е празен низ (случва се при празно поле)
+        if picture == '':
+            return None
 
         # Проверка за размер
         if picture.size > 5 * 1024 * 1024:
             raise ValidationError('Файлът е твърде голям. Максималният размер е 5MB.')
 
-        # Проверка за тип
+        # Проверка за тип - безопасно проверяваме дали има content_type
         valid_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
-        if picture.content_type not in valid_types:
-            raise ValidationError('Моля, качете валидно изображение (JPG, PNG, GIF, WebP).')
+
+        if hasattr(picture, 'content_type'):
+            if picture.content_type not in valid_types:
+                raise ValidationError('Моля, качете валидно изображение (JPG, PNG, GIF, WebP).')
+        else:
+            # Ако няма content_type, проверяваме разширението
+            import os
+            ext = os.path.splitext(picture.name)[1].lower()
+            if ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
+                raise ValidationError('Моля, качете валидно изображение (JPG, PNG, GIF, WebP).')
 
         return picture
 
 
-# Допълнителна форма за търсене и филтриране на потребители (за бъдеща употреба)
+# Форма за търсене и филтриране на потребители
 class UserSearchForm(forms.Form):
     """
     Форма за търсене на потребители

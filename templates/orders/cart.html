@@ -1,0 +1,302 @@
+<!--cart.html-->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Моята количка - TechShop{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'core:index' %}">Начало</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Количка</li>
+                </ol>
+            </nav>
+
+            <h1 class="mb-4">
+                <i class="fas fa-shopping-cart text-primary me-2"></i>
+                Моята количка
+            </h1>
+        </div>
+    </div>
+
+    {% if cart and cart|length > 0 %}
+    <div class="row">
+        <!-- Списък с продукти -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <div class="row align-items-center">
+                        <div class="col-6">
+                            <strong>Продукт</strong>
+                        </div>
+                        <div class="col-2 text-center">
+                            <strong>Цена</strong>
+                        </div>
+                        <div class="col-2 text-center">
+                            <strong>Количество</strong>
+                        </div>
+                        <div class="col-2 text-end">
+                            <strong>Общо</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% for item in cart %}
+                    <div class="cart-item p-3 border-bottom" data-product-id="{{ item.product_id }}">
+                        <div class="row align-items-center">
+                            <!-- Продукт -->
+                            <div class="col-6">
+                                <div class="d-flex align-items-center">
+                                    {% if item.image %}
+                                        <img src="{{ item.image }}" alt="{{ item.name }}"
+                                             class="cart-item-image me-3">
+                                    {% else %}
+                                        <div class="cart-item-image bg-light d-flex align-items-center justify-content-center me-3">
+                                            <i class="fas fa-laptop fa-2x text-secondary"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <a href="{% url 'products:product_detail' item.product_id %}"
+                                               class="text-decoration-none text-dark">
+                                                {{ item.name }}
+                                            </a>
+                                        </h6>
+                                        <small class="text-muted">Артикул: {{ item.product_id }}</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Цена -->
+                            <div class="col-2 text-center">
+                                <span class="fw-bold">{{ item.price|floatformat:2 }} €</span>
+                            </div>
+
+                            <!-- Количество -->
+                            <div class="col-2 text-center">
+                                <form method="post"
+                                      action="{% url 'orders:update_cart_item' item.product_id %}"
+                                      class="update-cart-form d-inline"
+                                      data-product-id="{{ item.product_id }}">
+                                    {% csrf_token %}
+                                    <div class="input-group input-group-sm">
+                                        <input type="number"
+                                               name="quantity"
+                                               value="{{ item.quantity }}"
+                                               min="1"
+                                               max="99"
+                                               class="form-control quantity-input text-center">
+                                        <button type="submit" class="btn btn-outline-primary">
+                                            <i class="fas fa-sync-alt"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Общо и действие -->
+                            <div class="col-2 text-end">
+                                <div class="fw-bold text-primary mb-1">
+                                    {% widthratio item.price 1 item.quantity %} €
+                                </div>
+                                <form method="post"
+                                      action="{% url 'orders:remove_from_cart' item.product_id %}"
+                                      class="remove-from-cart d-inline"
+                                      data-product-id="{{ item.product_id }}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-link text-danger">
+                                        <i class="fas fa-trash-alt"></i> Премахни
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Бутони за навигация -->
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{% url 'products:product_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i> Продължи с пазаруването
+                </a>
+                <a href="{% url 'orders:order_create' %}" class="btn btn-success btn-lg">
+                    <i class="fas fa-check-circle me-2"></i> Завърши поръчката
+                </a>
+            </div>
+        </div>
+
+        <!-- Обобщение на поръчката -->
+        <div class="col-lg-4">
+            <div class="cart-summary shadow-sm">
+                <h5 class="mb-3">
+                    <i class="fas fa-receipt me-2"></i> Обобщение
+                </h5>
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Брой артикули:</span>
+                    <strong>{{ cart|length }}</strong>
+                </div>
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Общо количество:</span>
+                    <strong>
+                        {% for item in cart %}
+                            {% if forloop.first %}
+                                {{ item.quantity }}
+                            {% else %}
+                                + {{ item.quantity }}
+                            {% endif %}
+                        {% endfor %}
+                    </strong>
+                </div>
+
+                <hr>
+
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="h5">Обща сума:</span>
+                    <span class="h5 text-primary fw-bold">{{ total|floatformat:2 }} €</span>
+                </div>
+
+                {% if total < 100 %}
+                <div class="alert alert-info small mb-3">
+                    <i class="fas fa-truck me-2"></i>
+                    Добавете още <strong>{{ 100|floatformat:2 }} €</strong> за безплатна доставка!
+                </div>
+                {% else %}
+                <div class="alert alert-success small mb-3">
+                    <i class="fas fa-truck me-2"></i>
+                    Безплатна доставка! 🎉
+                </div>
+                {% endif %}
+
+                <div class="mt-3">
+                    <small class="text-muted d-block mb-2">
+                        <i class="fas fa-credit-card me-1"></i> Плащане при доставка
+                    </small>
+                    <small class="text-muted d-block mb-2">
+                        <i class="fas fa-undo-alt me-1"></i> 14-дневно право на връщане
+                    </small>
+                    <small class="text-muted d-block">
+                        <i class="fas fa-shield-alt me-1"></i> Защитена покупка
+                    </small>
+                </div>
+            </div>
+
+            <!-- Препоръчани категории -->
+            <div class="mt-4">
+                <div class="card border-0 bg-light">
+                    <div class="card-body">
+                        <h6 class="mb-3">
+                            <i class="fas fa-star text-warning me-2"></i>
+                            Може да харесате още:
+                        </h6>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <a href="{% url 'products:product_list' %}?category=laptops"
+                                   class="text-decoration-none">
+                                    <div class="bg-white p-2 rounded text-center">
+                                        <i class="fas fa-laptop fa-2x text-primary mb-1"></i>
+                                        <small class="d-block">Лаптопи</small>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="{% url 'products:product_list' %}?category=accessories"
+                                   class="text-decoration-none">
+                                    <div class="bg-white p-2 rounded text-center">
+                                        <i class="fas fa-mouse fa-2x text-primary mb-1"></i>
+                                        <small class="d-block">Аксесоари</small>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-6 mt-2">
+                                <a href="{% url 'products:product_list' %}?category=components"
+                                   class="text-decoration-none">
+                                    <div class="bg-white p-2 rounded text-center">
+                                        <i class="fas fa-microchip fa-2x text-primary mb-1"></i>
+                                        <small class="d-block">Компоненти</small>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-6 mt-2">
+                                <a href="{% url 'products:product_list' %}?category=gaming"
+                                   class="text-decoration-none">
+                                    <div class="bg-white p-2 rounded text-center">
+                                        <i class="fas fa-gamepad fa-2x text-primary mb-1"></i>
+                                        <small class="d-block">Gaming</small>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Празна количка -->
+    <div class="empty-cart">
+        <i class="fas fa-shopping-cart"></i>
+        <h3>Вашата количка е празна</h3>
+        <p class="text-muted">Изглежда все още не сте добавили продукти в количката.</p>
+        <a href="{% url 'products:product_list' %}" class="btn btn-primary btn-lg mt-3">
+            <i class="fas fa-shopping-bag me-2"></i> Разгледайте нашите продукти
+        </a>
+    </div>
+
+    <!-- Препоръчителни категории (при празна количка) -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h5 class="text-center mb-4">Популярни категории</h5>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <a href="{% url 'products:product_list' %}?category=laptops" class="text-decoration-none">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="fas fa-laptop fa-3x text-primary mb-2"></i>
+                        <h6>Лаптопи</h6>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <a href="{% url 'products:product_list' %}?category=accessories" class="text-decoration-none">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="fas fa-headphones fa-3x text-primary mb-2"></i>
+                        <h6>Аксесоари</h6>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <a href="{% url 'products:product_list' %}?category=components" class="text-decoration-none">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="fas fa-microchip fa-3x text-primary mb-2"></i>
+                        <h6>Компоненти</h6>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <a href="{% url 'products:product_list' %}?category=gaming" class="text-decoration-none">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="fas fa-gamepad fa-3x text-primary mb-2"></i>
+                        <h6>Gaming</h6>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- JavaScript функционалността идва от scripts.js -->
+{% endblock %}

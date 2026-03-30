@@ -8,7 +8,8 @@ class Order(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Чакаща'),
         ('processing', 'Обработва се'),
-        ('completed', 'Завършена'),
+        ('shipped', 'Изпратена'),
+        ('delivered', 'Доставена'),
         ('cancelled', 'Отказана'),
     ]
 
@@ -19,36 +20,37 @@ class Order(models.Model):
         blank=True,
         verbose_name='Потребител'
     )
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending',
+        verbose_name='Статус'
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата на създаване')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Дата на обновяване')
 
-    # Поля за гост потребители (ако са нужни)
-    guest_name = models.CharField(max_length=100, blank=True, verbose_name='Име')
-    guest_email = models.EmailField(blank=True, verbose_name='Имейл')
-    guest_phone = models.CharField(max_length=20, blank=True, verbose_name='Телефон')
+    # Данни за гост потребител
+    guest_name = models.CharField(max_length=100, blank=True, verbose_name='Име (гост)')
+    guest_email = models.EmailField(blank=True, verbose_name='Имейл (гост)')
+    guest_phone = models.CharField(max_length=15, blank=True, verbose_name='Телефон (гост)')
+
+    shipping_address = models.TextField(blank=True, verbose_name='Адрес за доставка')
+    notes = models.TextField(blank=True, verbose_name='Бележки към поръчката')
+
+    class Meta:
+        verbose_name = 'Поръчка'
+        verbose_name_plural = 'Поръчки'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        if self.user:
+            return f"Поръчка {self.id} - {self.user.username}"
+        return f"Поръчка {self.id} - {self.guest_name}"
 
     @property
     def total_amount(self):
+        """Изчислява общата сума на поръчката"""
         return sum(item.get_total() for item in self.items.all())
-
-    @property
-    def customer_name(self):
-        if self.user:
-            return self.user.get_full_name() or self.user.username
-        return self.guest_name or 'Гост'
-
-    @property
-    def customer_email(self):
-        if self.user:
-            return self.user.email
-        return self.guest_email
-
-    @property
-    def customer_phone(self):
-        if self.user and hasattr(self.user, 'phone_number'):
-            return self.user.phone_number
-        return self.guest_phone
 
 
 class OrderItem(models.Model):
@@ -59,4 +61,3 @@ class OrderItem(models.Model):
 
     def get_total(self):
         return self.quantity * self.price_at_time
-

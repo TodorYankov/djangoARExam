@@ -16,9 +16,9 @@ class IsCompletedFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == 'yes':
-            return queryset.filter(status='completed')
+            return queryset.filter(status='delivered')
         if self.value() == 'no':
-            return queryset.exclude(status='completed')
+            return queryset.exclude(status='delivered')
         return queryset
 
 
@@ -29,14 +29,14 @@ class OrderItemInline(admin.TabularInline):
     readonly_fields = ['item_total']
 
     def item_total(self, obj):
-        return f'{obj.get_total():.2f} €.'
+        return f'{obj.get_total():.2f} €'
 
     item_total.short_description = 'Общо'
 
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['id', 'customer_name', 'customer_email', 'customer_phone',
+    list_display = ['id', 'guest_name', 'guest_email', 'guest_phone',
                     'created_at', 'status', 'colored_status', 'is_completed_display', 'total_price_display']
     list_filter = ['status', 'created_at', IsCompletedFilter]
     search_fields = ['guest_name', 'guest_email', 'guest_phone', 'user__username', 'user__email']
@@ -45,10 +45,10 @@ class OrderAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('Информация за клиента', {
-            'fields': ('user', 'guest_name', 'guest_email', 'guest_phone')
+            'fields': ('user', 'guest_name', 'guest_email', 'guest_phone', 'shipping_address')
         }),
         ('Статус и дати', {
-            'fields': ('status', 'created_at', 'updated_at', 'total_price_display')
+            'fields': ('status', 'created_at', 'updated_at', 'notes', 'total_price_display')
         }),
     )
 
@@ -56,7 +56,8 @@ class OrderAdmin(admin.ModelAdmin):
         colors = {
             'pending': 'orange',
             'processing': 'blue',
-            'completed': 'green',
+            'shipped': 'purple',
+            'delivered': 'green',
             'cancelled': 'red',
         }
         return format_html(
@@ -69,13 +70,14 @@ class OrderAdmin(admin.ModelAdmin):
     colored_status.admin_order_field = 'status'
 
     def is_completed_display(self, obj):
-        return obj.status == 'completed'
+        return obj.status == 'delivered'
 
     is_completed_display.short_description = 'Завършена'
     is_completed_display.boolean = True
 
     def total_price_display(self, obj):
-        return f'{obj.total_amount:.2f} €.'
+        total = sum(item.get_total() for item in obj.items.all())
+        return f'{total:.2f} €'
 
     total_price_display.short_description = 'Обща сума'
 
@@ -87,6 +89,6 @@ class OrderItemAdmin(admin.ModelAdmin):
     search_fields = ['order__guest_name', 'product__name', 'order__user__username']
 
     def item_total(self, obj):
-        return f'{obj.get_total():.2f} €.'
+        return f'{obj.get_total():.2f} €'
 
     item_total.short_description = 'Общо'

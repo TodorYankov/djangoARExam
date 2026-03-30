@@ -13,13 +13,11 @@ class ProductForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Проверка за категории при инициализация на формата
         if not Category.objects.exists():
             self.fields['category'].queryset = Category.objects.none()
             self.fields['category'].empty_label = "--- НЯМА КАТЕГОРИИ ---"
 
     def clean_category(self):
-        """Валидация на полето category"""
         if not Category.objects.exists():
             raise forms.ValidationError(
                 mark_safe(
@@ -48,13 +46,16 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     form = ProductForm
+
     list_display = ('name', 'category', 'price', 'stock_quantity', 'is_available', 'created_at')
+    list_display_links = ('name',)
     list_filter = ('category', 'is_available', 'created_at', 'product_type')
     search_fields = ('name', 'description')
     list_editable = ('price', 'stock_quantity', 'is_available')
     readonly_fields = ('created_at', 'updated_at')
     ordering = ('-created_at',)
     filter_horizontal = ('related_products',)
+    list_per_page = 25
 
     fieldsets = (
         ('Основна информация', {
@@ -62,6 +63,10 @@ class ProductAdmin(admin.ModelAdmin):
         }),
         ('Цена и наличност', {
             'fields': ('price', 'stock_quantity', 'is_available')
+        }),
+        ('Снимка', {
+            'fields': ('image',),
+            'classes': ('collapse',)
         }),
         ('Свързани продукти', {
             'fields': ('related_products',),
@@ -72,6 +77,25 @@ class ProductAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+    # ========== ДЕЙСТВИЯ ЗА МАСОВА ОБРАБОТКА ==========
+    # Започнете без actions, след това добавяйте едно по едно
+    actions = []
+
+    # Ако искате да добавите действия, разкоментирайте и тествайте:
+    """
+    def make_available(self, request, queryset):
+        updated = queryset.update(is_available=True)
+        self.message_user(request, f'{updated} продукта бяха маркирани като налични.')
+    make_available.short_description = 'Маркирай като налични'
+
+    def make_unavailable(self, request, queryset):
+        updated = queryset.update(is_available=False)
+        self.message_user(request, f'{updated} продукта бяха маркирани като неналични.')
+    make_unavailable.short_description = 'Маркирай като неналични'
+
+    actions = ['make_available', 'make_unavailable']
+    """
 
 
 

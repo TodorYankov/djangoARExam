@@ -5,16 +5,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.views import LoginView
 from django.views.generic import CreateView, UpdateView, DetailView, TemplateView, DeleteView
 from django.contrib.messages.views import SuccessMessageMixin
-from django.contrib import messages
-
 from .models import CustomUser
 from .forms import CustomUserCreationForm, CustomUserChangeForm, ProfilePictureForm
-
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 from django.contrib import messages
-from products.models import Product
 
 
 class RegisterView(SuccessMessageMixin, CreateView):
@@ -130,6 +126,21 @@ class ProfilePictureUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateVi
         messages.success(self.request, self.success_message)
         return response
 
+
+class ProfilePictureDeleteView(LoginRequiredMixin, View):
+    """Изтрива профилната снимка на потребителя"""
+
+    def get(self, request):
+        user = request.user
+        if user.profile_picture:
+            # Изтриване на файла от сървъра
+            user.profile_picture.delete()
+            user.save()
+            messages.success(request, 'Профилната снимка беше изтрита успешно.')
+        else:
+            messages.info(request, 'Нямате профилна снимка за изтриване.')
+
+        return redirect('accounts:profile')
 
 class DashboardView(LoginRequiredMixin, TemplateView):
     """

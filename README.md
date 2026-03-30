@@ -1,321 +1,315 @@
-# **TechShop**
+# 🛍️ **TechShop**
 
-TechShop is an e-commerce web application developed with Django.
-It allows users to browse products, place orders, and manage their purchases, while also providing an administrative interface for product and order management.
+### An E-Commerce Web Application built with Django | Уеб приложение за електронен магазин
 
-### Table of Contents
-* Overview
-* Features
-* Installation
-* Usage
+[![Test User](https://img.shields.io/badge/Test_User-testuser/testpass123-green)]
+[![GitHub repo](https://img.shields.io/badge/GitHub-TechShop-blue?logo=github)](https://github.com/TodorYankov/djangoARExam)
+[![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
+[![Django](https://img.shields.io/badge/Django-6.0.1-green.svg)](https://www.djangoproject.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-blue.svg)](https://www.postgresql.org/)
+[![Redis](https://img.shields.io/badge/Redis-5.2.1-red.svg)](https://redis.io/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-### Overview
-TechShop was created as an exam project to demonstrate Django development skills. It includes three main applications:
-* **products** – product management (catalog, details, categories)
-* **orders** – order processing (cart, checkout, history)
-* **core** – core functionality (home page, navigation) + user profiles – planned for the next version
+---
 
-The application showcases:
-* Product catalog with categories and stock tracking.
-* Shopping cart and order placement.
-* Order management with status updates.
-* Admin panel for managing products, categories, and orders.
-* Responsive user interface built with Bootstrap 5.
+## 📖 **Table of Contents** | **Съдържание**
+- [Overview](#-overview--общ-преглед)
+- [Live Demo](#-live-demo--демо-на-живо)
+- [Features](#-features--функционалности)
+- [Technology Stack](#-technology-stack--технологичен-стек)
+- [Installation](#-installation--инсталация)
+- [Usage](#-usage--употреба)
+- [API Endpoints](#-api-endpoints)
+- [Testing](#-testing--тестване)
+- [Project Structure](#-project-structure--структура-на-проекта)
+- [License](#-license--лиценз)
 
-The goal is to provide a solid foundation for an online store that can be extended with additional features like user accounts, payment integration, and more.
+---
 
-### Features
-* **Product Management**
-  - List products by category.
-  - Search and filter products.
-  - Detailed product view.
-  - Track stock quantity and availability.
-* **Order Management**
-  - Create new orders (manual entry by staff).
-  - Automatic calculation of total price based on order items.
-  - Multiple order statuses: Pending, Processing, Completed, Cancelled.
-  - View order details with items and prices.
-* **Admin Interface**
-  - Customized Django admin for easy management of products, categories, and orders.
-  - Inline editing of order items.
-  - Status filters and search.
-* **Responsive Design**
-  - Mobile‑friendly interface with Bootstrap 5.
-  - Intuitive navigation.
+## 🔍 **Overview** | **Общ преглед**
 
-### Installation
-Follow these steps to set up the project locally.
+### 🇬🇧 English
+**TechShop** is an e-commerce web application developed with **Django**. It allows users to browse products, place orders, leave reviews, and manage their purchases while providing an administrative interface for managing products, categories, orders, and reviews.
 
-### Prerequisites
-* Python 3.12 or higher
-* pip
-* Git
-* Virtual environment (recommended)
+This project was created as an exam project for the **Django Advanced** course at **SoftUni**.
 
-### Clone the repository
-- https://github.com/TodorYankov/djangoBRExam.git
-- http://83.228.97.7/ -> Here is an installed and working empty project
-- http://83.228.97.7/2/ -> Here is an installed and working project 
-with a created category, product, and order
+### 🇧🇬 Български
+**TechShop** е уеб приложение за електронен магазин, разработено с **Django**. То позволява на потребителите да разглеждат продукти, да правят поръчки, да оставят отзиви и да управляват покупките си, като същевременно предоставя административен интерфейс за управление на продукти, категории, поръчки и отзиви.
 
-### **Create and activate a virtual environment**
-#### **Windows:** (bash)
- - python -m venv .venv
- - .venv\Scripts\activate
-#### Linux / macOS: (bash)
- - python3 -m venv .venv
- - source .venv/bin/activate
+Този проект е създаден като изпитен проект за курса **Django Advanced** в **SoftUni**.
 
-### Install Pillow in the virtual environment.
- - python -m pip install Pillow   
+### 🎯 **Key Demonstrations** | **Демонстрирани умения**
 
-### **Install dependencies** (bash)
- - pip install -r requirements.txt
+| 🇬🇧 English | 🇧🇬 Български |
+|------------|--------------|
+| Advanced database modeling with PostgreSQL | Разширено моделиране на бази данни с PostgreSQL |
+| Asynchronous processing with Celery and Redis | Асинхронна обработка със Celery и Redis |
+| RESTful API with JWT authentication | RESTful API с JWT автентикация |
+| Customized administrative interface | Персонализиран административен интерфейс |
+| User profiles and authentication | Потребителски профили и автентикация |
+| Product reviews and ratings | Отзиви и рейтинги за продукти |
+| Loyalty points system | Система за точки за лоялност |
 
-### **Environment variables**
-In manage.py, add the following (adjust values as needed):
-* SECRET_KEY=your_secret_key_here
-* DEBUG=True
-* ALLOWED_HOSTS=127.0.0.1,localhost
+---
 
-You can generate a secret key with: (bash)
-- python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+## 🌐 **Live Demo** | **Демо на живо**
 
-### **Apply migrations** (bash)
-- python manage.py makemigrations   # create migration files based on model changes
-- python manage.py migrate           # apply migrations to the database
+| 🇬🇧 English | 🇧🇬 Български |
+|------------|--------------|
+| **Current project:** http://83.228.97.7/ | **Текущ проект:** http://83.228.97.7/ |
+| **Previous exam:** http://83.228.97.7/2/ | **Предишен изпит:** http://83.228.97.7/2/ |
 
-### **Create a superuser (for admin access)** (bash)
+---
+
+## ⚙️ **Features** | **Функционалности**
+
+### 👤 **Users & Profiles** | **Потребители и профили**
+
+| 🇬🇧 English | 🇧🇬 Български |
+|------------|--------------|
+| Registration, login, logout | Регистрация, вход, изход |
+| Personal profile with photo, phone, address | Персонален профил със снимка, телефон, адрес |
+| Favourite products | Любими продукти |
+| Loyalty points system | Система за точки за лоялност |
+| Password change | Смяна на парола |
+| Three user levels: Customers, Staff, Managers | Три нива на потребители: Customers, Staff, Managers |
+
+### 📦 **Products** | **Продукти**
+
+| 🇬🇧 English | 🇧🇬 Български |
+|------------|--------------|
+| Categories and product types | Категории и типове продукти |
+| Search by name, description, category | Търсене по име, описание, категория |
+| Filter by price, availability, type | Филтриране по цена, наличност, тип |
+| Sort by price, name, date | Сортиране по цена, име, дата |
+| Detailed view with similar products | Детайлен изглед с подобни продукти |
+| Full CRUD operations | Пълни CRUD операции |
+
+### 🛒 **Orders** | **Поръчки**
+
+| 🇬🇧 English | 🇧🇬 Български |
+|------------|--------------|
+| Add to cart functionality | Добавяне в количка |
+| Automatic total calculation | Автоматично изчисляване на обща сума |
+| Statuses: Pending, Processing, Completed, Cancelled | Статуси: Чакаща, Обработва се, Изпълнена, Отказана |
+| Order history | История на поръчките |
+
+### ⭐ **Reviews** | **Отзиви**
+
+| 🇬🇧 English | 🇧🇬 Български |
+|------------|--------------|
+| Rating from 1 to 5 stars | Оценка от 1 до 5 звезди |
+| Comments and titles | Коментари и заглавия |
+| Automatic average rating calculation | Автоматично изчисляване на среден рейтинг |
+| Helpful votes | Гласуване за полезност |
+| Administrative review approval | Административно одобрение на отзиви |
+
+### 🔧 **Admin Interface** | **Административен интерфейс**
+
+| 🇬🇧 English | 🇧🇬 Български |
+|------------|--------------|
+| Customized Django admin | Персонализиран Django admin |
+| Inline editors | Вградени inline редактори |
+| Bulk actions | Масови действия |
+
+---
+
+## 🛠️ **Technology Stack** | **Технологичен стек**
+
+| Technology | Version | Технология | Версия |
+|------------|---------|------------|-------|
+| Django | 6.0.1 | Django | 6.0.1 |
+| Django REST Framework | 3.15.2 | Django REST Framework | 3.15.2 |
+| Celery | 5.4.0 | Celery | 5.4.0 |
+| Redis | 5.2.1 | Redis | 5.2.1 |
+| PostgreSQL | 14+ | PostgreSQL | 14+ |
+| Bootstrap | 5.3 | Bootstrap | 5.3 |
+| Python | 3.12+ | Python | 3.12+ |
+
+---
+
+## 🚀 **Installation** | **Инсталация**
+
+### 📋 **Requirements** | **Изисквания**
+
+| 🇬🇧 English | 🇧🇬 Български |
+|------------|--------------|
+| Python 3.12 or higher | Python 3.12 или по-висока |
+| pip | pip |
+| PostgreSQL 14+ | PostgreSQL 14+ |
+| Redis (for Celery) | Redis (за Celery) |
+| Git | Git |
+| Virtual environment (recommended) | Виртуална среда (препоръчително) |
+
+### 📝 **Step-by-Step Installation** | **Инсталация стъпка по стъпка**
+
+#### 1️⃣ **Clone the repository** | **Клониране на хранилището**
+```bash
+git clone https://github.com/TodorYankov/djangoARExam.git
+cd djangoARExam
+2️⃣ Create and activate virtual environment | Създаване и активиране на виртуална среда
+Windows (bash):
+
+bash
+python -m venv .venv
+.venv\Scripts\activate
+Linux / macOS:
+
+bash
+python3 -m venv .venv
+source .venv/bin/activate
+3️⃣ Install dependencies | Инсталиране на зависимостите
+bash
+pip install -r requirements.txt
+4️⃣ Configure PostgreSQL | Конфигуриране на PostgreSQL
+sql
+sudo -u postgres psql
+CREATE DATABASE techshop_db;
+CREATE USER techshop_user WITH PASSWORD 'your_password';
+ALTER ROLE techshop_user SET client_encoding TO 'utf8';
+ALTER ROLE techshop_user SET default_transaction_isolation TO 'read committed';
+ALTER ROLE techshop_user SET timezone TO 'UTC';
+GRANT ALL PRIVILEGES ON DATABASE techshop_db TO techshop_user;
+\q
+5️⃣ Environment variables | Променливи на средата
+Create .env file in the project root | Създайте файл .env в главната директория:
+
+env
+SECRET_KEY=your-secret-key-here
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+DB_NAME=techshop_db
+DB_USER=techshop_user
+DB_PASSWORD=your_password
+DB_HOST=localhost
+DB_PORT=5432
+
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_RESULT_BACKEND=redis://localhost:6379/0
+REDIS_URL=redis://localhost:6379/0
+Generate secret key | Генерирайте секретен ключ:
+
+bash
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+6️⃣ Start Redis (in separate terminal) | Стартиране на Redis (в отделен терминал)
+Linux/macOS:
+
+bash
+redis-server
+Windows (with WSL):
+
+bash
+sudo service redis-server start
+7️⃣ Apply migrations | Прилагане на миграциите
+bash
+python manage.py makemigrations
+python manage.py migrate
+8️⃣ Create superuser | Създаване на суперпотребител
+bash
 python manage.py createsuperuser
-
-### **Run the development server** (bash)
+9️⃣ Start Celery worker (in separate terminal) | Стартиране на Celery worker (в отделен терминал)
+bash
+celery -A djangoARExam worker --loglevel=info
+🔟 Start the server | Стартиране на сървъра
+bash
 python manage.py runserver
+Open http://127.0.0.1:8000/ in your browser | Отворете http://127.0.0.1:8000/ в браузъра
 
-Open http://127.0.0.1:8000/ in your browser.
+📦 Optional: Load sample data | По желание: Зареждане на примерни данни
+bash
+python manage.py loaddata initial_data.json
+📖 Usage | Употреба
+🔐 Admin Panel | Административен панел
+Go to http://127.0.0.1:8000/admin/ and login with superuser credentials
 
-### **Usage**
+Manage categories, products, orders, reviews, user groups
 
-### **Admin panel**
-1.Go to http://127.0.0.1:8000/admin/ and log in with your superuser credentials.
-2.From the dashboard you can:
-- Add/edit categories and products.
-- View and manage orders.
-- Change order status.
+Отидете на http://127.0.0.1:8000/admin/ и влезте с данните на суперпотребителя
 
-### **User‑facing pages**
-- Home page – http://127.0.0.1:8000/ – displays featured products (if any) and links to categories.
-- Product list – http://127.0.0.1:8000/products/ – shows all products with filtering options.
-- Product detail – click on any product to see full details.
-- Orders – (staff only) http://127.0.0.1:8000/orders/ – list of orders with create/edit/delete capabilities.
+Управлявайте категории, продукти, поръчки, отзиви, потребителски групи
 
-### **Creating an order**
-1. Go to the orders list and click New order.
-2. Fill in the customer details and add items (select product and quantity).
-3. The total amount is calculated automatically.
-4. After saving, you can change the status from the order detail view.
+🌍 User Pages | Потребителски страници
+Page	URL	Description	Описание
+🏠 Home	/	Featured products and navigation	Представени продукти и навигация
+📦 Products	/products/	Product list, search, filters	Списък с продукти, търсене, филтри
+🔍 Product Detail	/products/<id>/	Detailed info, add to cart, favourites	Подробна информация, добавяне в количка, любими
+🛒 Cart	/orders/cart/	Added products	Добавени продукти
+📋 Orders	/orders/	Order history (authenticated users)	История на поръчките (автентикирани потребители)
+👤 Profile	/accounts/profile/	Personal information, favourites	Лична информация, любими
+📝 Registration	/accounts/register/	Create new account	Създаване на нов акаунт
+🔑 Login	/accounts/login/	Sign in	Влизане в системата
+🌐 API Endpoints
+Method	Endpoint	Description	Описание
+GET	/api/products/	List products	Списък с продукти
+GET	/api/categories/	List categories	Списък с категории
+POST	/api/token/	Obtain JWT token	Получаване на JWT токен
+POST	/api/token/refresh/	Refresh JWT token	Обновяване на JWT токен
+GET	/api/test-task/	Test Celery task	Тест на Celery задача
+🧪 Testing | Тестване
+The project includes 46 tests covering models, forms, and views.
 
+Проектът включва 46 теста, покриващи модели, форми и изгледи.
 
-With sample data (one category + one product)
-- Here you need to create a fixture – this is Django's way to export/import data.
+bash
+# Run all tests | Стартиране на всички тестове
+python manage.py test
 
-- Steps to create a fixture:
-
-- On your local computer (where you have a working project with sample data):
-
-- bash
-- python manage.py dumpdata products.Category products.Product --indent 2 > initial_data.json
-- This will create a JSON file with a structure like this:
-
-json
-[
-  {
-    "model": "products.category",
-    "pk": 1,
-    "fields": {
-      "name": "Лаптопи",
-      "description": "Лаптопи за всякакви нужди"
-    }
-  },
-  {
-    "model": "products.product",
-    "pk": 1,
-    "fields": {
-      "name": "HP Compaq",
-      "category": 1,
-      "price": "180.00",
-      "stock_quantity": 10
-    }
-  }
-]
-- Place this file in the products/fixtures/ directory (create it if it doesn't exist).
+# Run tests for specific app | Стартиране на тестовете за конкретно приложение
+python manage.py test accounts
+python manage.py test products
+python manage.py test reviews
+Expected output | Очакван резултат:
 
 
+Ran 67 tests in 94.748s
+OK
 
+### ✅ Manual Test Scenario | Ръчен тестов сценарий
 
-This README was created as part of an exam project documentation.
+You can manually test the complete order flow with a predefined test user:
 
+**Test credentials | Тестови данни за вход:**
+- **Username | Потребител:** `testuser`
+- **Password | Парола:** `testpass123`
 
+**Successfully executed test | Успешно изпълнен тест:**
 
+1. Log in with `testuser` / `testpass123`
+2. Browse products and add **two different products** to the cart
+3. Go to cart and proceed to checkout
+4. Complete the order
 
+> ✅ **Result | Резултат:** Order with two products was successfully created and appears in order history.
+> 
+> ✅ **Резултат:** Поръчка с два продукта беше успешно създадена и се вижда в историята на поръчките.
 
-# **TechShop**
+📁 Project Structure | Структура на проекта
 
-TechShop е уеб приложение за електронен магазин, разработено с Django.
-То позволява на потребителите да разглеждат продукти, 
-да правят поръчки и да управляват покупките си, като 
-същевременно предоставя административен интерфейс за 
-управление на продукти и поръчки.
+djangoARExam/
+├── 📁 accounts/          # User profiles, authentication | Потребителски профили, автентикация
+├── 📁 core/              # Main pages, common views | Основни страници, общи изгледи
+├── 📁 products/          # Products, categories, API | Продукти, категории, API
+├── 📁 orders/            # Orders, shopping cart | Поръчки, количка
+├── 📁 reviews/           # Reviews, ratings | Отзиви, оценки
+├── 📁 static/            # Static files (CSS, JS, images) | Статични файлове
+├── 📁 templates/         # HTML templates | HTML шаблони
+├── 📁 media/             # User uploaded files | Качени от потребителите файлове
+├── 📁 djangoARExam/      # Project settings | Настройки на проекта
+├── 🐍 manage.py          # Django management script | Django управляващ скрипт
+├── 📄 requirements.txt   # Dependencies | Зависимости
+└── 🔒 .env               # Environment variables (not in Git) | Променливи на средата
+📄 License | Лиценз
+This project is created for educational purposes as part of the Django Advanced course at SoftUni.
 
-Съдържание:
-* Общ преглед
-* Функционалности
-* Инсталация
-* Употреба
+Този проект е създаден за образователни цели като част от курса Django Advanced в SoftUni.
 
+👨‍💻 Author | Автор
+Todor Yankov | Тодор Янков
 
-Общ преглед
-TechShop е създаден като изпитен проект, целящ да демонстрира 
-умения за разработка с Django. Той включва три основни приложения: 
-* products – управление на продуктите (каталог, детайли, категории)
-* orders – обработка на поръчки (количка, плащане, история)
-* core – основна функционалност (начална страница, навигация) + потребителски профили - в следващата версия на продукта   
- 
- Приложението показва:
-* Каталог с продукти, категории и следене на наличност.
-* Количка за пазаруване и създаване на поръчки.
-* Управление на поръчки с промяна на статуса.
-* Административен панел за управление на продукти, категории и поръчки.
-* Адаптивен потребителски интерфейс, изграден с Bootstrap 5.
+GitHub: @TodorYankov
 
-Целта е да се осигури солидна основа за онлайн магазин, която може да бъде разширявана с допълнителни функции като потребителски акаунти, плащания и други.
- 
-Функционалности
-* Управление на продукти
-  -  Списък на продуктите по категории.
-  - Търсене и филтриране на продукти.
-  - Детайлен изглед на продукт.
-  - Следене на количество и наличие.
+README updated: March 2026 | README актуализиран: март 2026 г.
 
-* Управление на поръчки
-  - Създаване на нови поръчки (ръчно въвеждане от служител).
-  - Автоматично изчисляване на общата сума на база артикулите в поръчката.
-  - Няколко статуса на поръчка: Чакаща, Обработва се, Изпълнена, Отказана.
-  - Преглед на детайли на поръчка с артикули и цени.
+Project for Django Advanced course – SoftUni | Проект за курса Django Advanced – SoftUni
 
-* Административен интерфейс
-  - Персонализиран Django admin за лесно управление на продукти, категории и поръчки.
-  - Вграден редактор на артикули в поръчката (inline).
-  - Филтри по статус и търсене.
-
-* Адаптивен дизайн
-  - Мобилно-приятелски интерфейс с Bootstrap 5.
-  - Интуитивна навигация.
-  
-* Инсталация
-Следвайте тези стъпки, за да настроите проекта локално.
-
-* Изисквания
-  - Python 3.12 или по-нова версия
-  - pip
-  - Git
-  - Виртуална среда (препоръчително) 
-
-* Клониране на хранилището
-- git clone https://github.com/TodorYankov/djangoBRExam.git
-- http://83.228.97.7/     -> Тук се намира инсталиран и работещ празен проект
-- http://83.228.97.7/2/  -> Тук се намира инсталиран и работещ проект 
-със създадена категория, продукт и поръчка
-
-* Създаване и активиране на виртуална среда
-  - #### Windows: (bash)
-    - python -m venv .venv
-    - .venv\Scripts\activate
-  - #### Linux / macOS: (bash)
-    - python3 -m venv .venv
-    - source .venv/bin/activate
-
-* Инсталирайте Pillow във виртуалната среда.
- - python -m pip install Pillow    
-
-* Инсталиране на зависимостите (bash)
-  - pip install -r requirements.txt
-
-* Настройка на променливи на средата
-  - В manage.py добавете следното (коригирайте стойностите според нуждите):
-     - SECRET_KEY=your_secret_key_here
-     - DEBUG=True
-     - ALLOWED_HOSTS=127.0.0.1,localhost
-  - Можете да генерирате таен ключ чрез: (bash)
-     - python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-
-* Прилагане на миграциите (bash)
-  - python manage.py makemigrations – създава миграционни файлове (в папка migrations/) на базата на промените в моделите (например когато създадете нов модел или промените съществуващ).
-  - python manage.py migrate – прилага тези миграции към базата данни (създава/променя таблиците).
-  
-* Създаване на суперпотребител (за административния панел) (bash)
-  - python manage.py createsuperuser
-
-* Зареждане на примерни данни (по желание) (bash)
-  - python manage.py loaddata initial_data.json
-
-* Стартиране на сървъра за разработка (bash)
-  - python manage.py runserver
-  - Отворете http://127.0.0.1:8000/ в браузъра си.
-  
-### Употреба
-#### Административен панел
-1. Отидете на http://127.0.0.1:8000/admin/ и влезте с данните на суперпотребителя.
-2. От таблото можете да:
-- Добавяте/редактирате категории и продукти. Първо трябва да създадете нова категория и след това нов продукт.
-- Преглеждате и управлявате поръчки.
-- Променяте статуса на поръчка.
-
-#### Потребителски страници
-* Начална страница – http://127.0.0.1:8000/ – показва представени продукти (ако има) и връзки към категории.
-* Списък с продукти – http://127.0.0.1:8000/products/ – всички продукти с опции за филтриране.
-* Детайли на продукт – кликнете върху произволен продукт, за да видите подробности.
-* Поръчки – (само за служители) http://127.0.0.1:8000/orders/ – списък с поръчки, с възможност за създаване, редактиране и изтриване.
-
-#### Създаване на поръчка
-1.Отидете в списъка с поръчки и натиснете Нова поръчка.
-2.Попълнете данните на клиента и добавете артикули (изберете продукт и количество).
-3.Общата сума се изчислява автоматично.
-4.След запис можете да промените статуса от детайлния изглед на поръчката.
-
-
-С примерни данни (една категория + един продукт)
-- Тук трябва да създадете fixture - това е начинът на Django да експортира/импортира данни .
-
-- Стъпки за създаване на fixture:
-
-- На вашия локален компютър (където имате работещ проект с примерни данни):
-
-- bash
-- python manage.py dumpdata products.Category products.Product --indent 2 > initial_data.json
-- Това ще създаде JSON файл със структура като тази :
-
-json
-[
-  {
-    "model": "products.category",
-    "pk": 1,
-    "fields": {
-      "name": "Лаптопи",
-      "description": "Лаптопи за всякакви нужди"
-    }
-  },
-  {
-    "model": "products.product",
-    "pk": 1,
-    "fields": {
-      "name": "HP Compaq",
-      "category": 1,
-      "price": "180.00",
-      "stock_quantity": 10
-    }
-  }
-]
-- Поставете този файл в products/fixtures/ директория (създайте я, ако я няма)
-
-
-Това README е създадено като част от документацията за изпитен проект.
