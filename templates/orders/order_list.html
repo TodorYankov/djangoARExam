@@ -1,4 +1,4 @@
-<!-- techShop/templates/orders/order_list.html -->
+<!-- /templates/orders/order_list.html -->
 {% extends 'base.html' %}
 {% load static %}
 
@@ -10,7 +10,6 @@
 
 {% block content %}
 <div class="container">
-    <!-- Заглавие и бутон за нова поръчка -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="mb-0">
@@ -23,13 +22,11 @@
         </a>
     </div>
 
-    <!-- Мобилен hint (само за малки екрани) -->
     <div class="mobile-hint d-block d-sm-none mb-3">
         <i class="fas fa-mobile-alt me-2"></i>
         <small>Използвайте хоризонтално превъртане за пълен преглед</small>
     </div>
 
-    <!-- Филтри и търсене -->
     <div class="card mb-4">
         <div class="card-body">
             <div class="row">
@@ -40,13 +37,15 @@
                         </span>
                         <select class="form-select" id="statusFilter">
                             <option value="">Всички статуси</option>
-                            <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Чакащо</option>
+                            <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Чакаща</option>
                             <option value="processing" {% if request.GET.status == 'processing' %}selected{% endif %}>Обработва се</option>
-                            <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Завършено</option>
-                            <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Отказано</option>
+                            <option value="shipped" {% if request.GET.status == 'shipped' %}selected{% endif %}>Изпратена</option>
+                            <option value="delivered" {% if request.GET.status == 'delivered' %}selected{% endif %}>Доставена</option>
+                            <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Отказана</option>
                         </select>
                     </div>
                 </div>
+
                 <div class="col-md-8">
                     <form method="get" class="d-flex" id="searchForm">
                         <input type="text"
@@ -69,7 +68,6 @@
         </div>
     </div>
 
-    <!-- Информация за резултатите -->
     {% if request.GET.search or request.GET.status %}
     <div class="alert alert-info mb-4">
         <i class="fas fa-info-circle me-2"></i>
@@ -78,13 +76,21 @@
             за: "<strong>{{ request.GET.search }}</strong>"
         {% endif %}
         {% if request.GET.status %}
-            със статус: <strong>{{ request.GET.status|title }}</strong>
+            със статус:
+            <strong>
+                {% if request.GET.status == 'pending' %}Чакаща
+                {% elif request.GET.status == 'processing' %}Обработва се
+                {% elif request.GET.status == 'shipped' %}Изпратена
+                {% elif request.GET.status == 'delivered' %}Доставена
+                {% elif request.GET.status == 'cancelled' %}Отказана
+                {% else %}{{ request.GET.status|title }}
+                {% endif %}
+            </strong>
         {% endif %}
         <a href="{% url 'orders:order_list' %}" class="float-end">Изчисти филтрите</a>
     </div>
     {% endif %}
 
-    <!-- Списък с поръчки -->
     {% if orders %}
     <div class="table-responsive">
         <table class="table table-hover" id="ordersTable">
@@ -97,7 +103,7 @@
                     <th>Обща сума</th>
                     <th>Дата</th>
                     <th>Действия</th>
-                 </tr>
+                </tr>
             </thead>
             <tbody>
                 {% for order in orders %}
@@ -122,13 +128,15 @@
                     </td>
                     <td>
                         {% if order.status == 'pending' %}
-                            <span class="badge bg-warning status-badge">Чакащо</span>
+                            <span class="badge bg-warning text-dark status-badge">Чакаща</span>
                         {% elif order.status == 'processing' %}
-                            <span class="badge bg-info status-badge">Обработва се</span>
-                        {% elif order.status == 'completed' %}
-                            <span class="badge bg-success status-badge">Завършено</span>
+                            <span class="badge bg-info text-dark status-badge">Обработва се</span>
+                        {% elif order.status == 'shipped' %}
+                            <span class="badge bg-primary status-badge">Изпратена</span>
+                        {% elif order.status == 'delivered' %}
+                            <span class="badge bg-success status-badge">Доставена</span>
                         {% elif order.status == 'cancelled' %}
-                            <span class="badge bg-danger status-badge">Отказано</span>
+                            <span class="badge bg-danger status-badge">Отказана</span>
                         {% endif %}
                     </td>
                     <td>
@@ -169,7 +177,6 @@
         </table>
     </div>
 
-    <!-- Пагинация -->
     {% if is_paginated %}
     <nav aria-label="Page navigation" class="mt-4">
         <ul class="pagination justify-content-center" id="pagination">
@@ -206,7 +213,6 @@
     </nav>
     {% endif %}
 
-    <!-- Статистика за поръчките -->
     <div class="row mt-5">
         <div class="col-md-12">
             <div class="card border-0 shadow-sm stats-container">
@@ -220,25 +226,25 @@
                     <div class="row text-center">
                         <div class="col-md-3 mb-3">
                             <div class="p-3 bg-light rounded border stats-card" data-stat="total">
-                                <h3 class="text-primary mb-1">{{ total_orders|default:orders|length }}</h3>
+                                <h3 class="text-primary mb-1" id="total-orders">{{ total_orders|default:orders|length }}</h3>
                                 <p class="mb-0 text-muted">Общо поръчки</p>
                             </div>
                         </div>
                         <div class="col-md-3 mb-3">
                             <div class="p-3 bg-light rounded border stats-card" data-stat="revenue">
-                                <h3 class="text-success mb-1">{{ total_revenue|default:"0.00" }} €</h3>
+                                <h3 class="text-success mb-1" id="total-revenue">{{ total_revenue|default:"0.00" }} €</h3>
                                 <p class="mb-0 text-muted">Общо приходи</p>
                             </div>
                         </div>
                         <div class="col-md-3 mb-3">
                             <div class="p-3 bg-light rounded border stats-card" data-stat="pending">
-                                <h3 class="text-info mb-1">{{ pending_orders|default:0 }}</h3>
+                                <h3 class="text-info mb-1" id="pending-orders">{{ pending_orders|default:0 }}</h3>
                                 <p class="mb-0 text-muted">Чакащи поръчки</p>
                             </div>
                         </div>
                         <div class="col-md-3 mb-3">
                             <div class="p-3 bg-light rounded border stats-card" data-stat="average">
-                                <h3 class="text-warning mb-1">{{ avg_order_value|default:"0.00" }} €</h3>
+                                <h3 class="text-warning mb-1" id="avg-order-value">{{ avg_order_value|default:"0.00" }} €</h3>
                                 <p class="mb-0 text-muted">Средна стойност</p>
                             </div>
                         </div>
@@ -249,7 +255,6 @@
     </div>
 
     {% else %}
-    <!-- Няма поръчки -->
     <div class="text-center py-5 my-5">
         <div class="card border-0 shadow-sm mx-auto no-orders-card">
             <div class="card-body py-5">
@@ -273,7 +278,6 @@
     </div>
     {% endif %}
 
-    <!-- Навигация -->
     <div class="mt-5 pt-4 border-top">
         <div class="d-flex justify-content-between align-items-center">
             <div>
@@ -302,6 +306,7 @@
 {% block extra_js %}
 <script src="{% static 'js/scripts.js' %}"></script>
 {% endblock %}
+
 
 
 

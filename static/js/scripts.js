@@ -208,8 +208,6 @@ const Products = {
         }
 
         Forms.initFormValidation('productForm');
-
-        // Инициализация на бутоните за добавяне в количка на страницата с продукти
         this.initAddToCartButtons();
     },
 
@@ -258,7 +256,7 @@ const Orders = {
         document.querySelectorAll('.order-row').forEach(row => {
             row.style.cursor = 'pointer';
             row.addEventListener('click', e => {
-                if (!e.target.closest('button, a')) {
+                if (!e.target.closest('button, a, form, input, select, textarea')) {
                     const orderId = row.dataset.orderId;
                     if (orderId) window.location.href = `/orders/${orderId}/`;
                 }
@@ -267,31 +265,21 @@ const Orders = {
 
         this.initOrderFormset();
         Forms.initFormValidation('orderForm');
-
-        // Инициализация на функционалностите за количката
         this.initCartHandlers();
-
-        // Инициализация на функционалностите за формата на поръчката
         this.initOrderFormHandlers();
     },
 
     initOrderFormHandlers() {
-        // Проверка дали сме на страницата за създаване на поръчка
         if (window.location.pathname.includes('/orders/create/')) {
-
-            // Проверка дали има липсващи данни в профила
             const shippingAddressField = document.querySelector('textarea[name="shipping_address"]');
             const phoneField = document.querySelector('input[name="phone"]');
 
-            // Ако полетата са празни и потребителят няма попълнени данни
             if (shippingAddressField && phoneField) {
                 const hasAddress = shippingAddressField.value.trim();
                 const hasPhone = phoneField.value.trim();
 
                 if (!hasAddress && !hasPhone) {
-                    // Показваме модален прозорец след кратко забавяне
                     setTimeout(() => {
-                        // Проверка дали модалният прозорец вече съществува
                         if (!document.getElementById('profileDataModal')) {
                             const modalHtml = `
                                 <div class="modal fade" id="profileDataModal" tabindex="-1" data-bs-backdrop="static">
@@ -340,18 +328,15 @@ const Orders = {
                             `;
                             document.body.insertAdjacentHTML('beforeend', modalHtml);
 
-                            // Показваме модалния прозорец
                             const modal = new bootstrap.Modal(document.getElementById('profileDataModal'));
                             modal.show();
 
-                            // Запазваме в localStorage, че сме показали съобщението
                             localStorage.setItem('profileDataModalShown', 'true');
                         }
                     }, 1000);
                 }
             }
 
-            // Автоматично форматиране на телефонния номер
             const phoneInput = document.querySelector('input[name="phone"]');
             if (phoneInput) {
                 phoneInput.addEventListener('input', function(e) {
@@ -369,7 +354,6 @@ const Orders = {
                 });
             }
 
-            // Потвърждение преди изпращане на формата
             const orderForm = document.getElementById('orderForm');
             if (orderForm) {
                 orderForm.addEventListener('submit', function(e) {
@@ -396,6 +380,7 @@ const Orders = {
                     if (U.confirm('Сигурни ли сте, че искате да потвърдите поръчката на стойност ' + totalText + '?')) {
                         return true;
                     }
+
                     e.preventDefault();
                     return false;
                 });
@@ -404,28 +389,38 @@ const Orders = {
     },
 
     initCartHandlers() {
-    // Ако сме на страницата на количката
-    if (window.location.pathname.includes('/orders/cart/')) {
-        // Обработка на формите за обновяване на количество
+        if (!window.location.pathname.includes('/orders/cart/')) return;
+
         const updateForms = document.querySelectorAll('.update-cart-form');
         updateForms.forEach(form => {
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
+
                 const productId = this.dataset.productId;
-                const quantity = this.querySelector('input[name="quantity"]').value;
+                const quantityInput = this.querySelector('input[name="quantity"]');
+                const quantity = quantityInput ? quantityInput.value : 1;
 
                 fetch(`/orders/cart/update/${productId}/`, {
                     method: 'POST',
                     headers: {
-                        'X-CSRFToken': window.djangoData?.csrfToken || '',
-                        'X-Requested-With': 'XMLHttpRequest'  // <-- ДОБАВЕТЕ ТОВА
+                        'X-CSRFToken': cartConfig.csrfToken || window.djangoData?.csrfToken || '',
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
                     body: new URLSearchParams({ quantity: quantity })
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success) {
-                        location.reload();
+                        updateCartCount();
+                        if (window.location.pathname === '/orders/') {
+                            fetchStatistics();
+                        }
+                        U.alert('Количеството беше обновено успешно.', 'success');
                     } else {
                         U.alert('Възникна грешка при обновяването.', 'danger');
                     }
@@ -437,7 +432,6 @@ const Orders = {
             });
         });
 
-        // Обработка на формите за премахване
         const removeForms = document.querySelectorAll('.remove-from-cart');
         removeForms.forEach(form => {
             form.addEventListener('submit', function(e) {
@@ -453,8 +447,8 @@ const Orders = {
                     fetch(this.action, {
                         method: 'POST',
                         headers: {
-                            'X-CSRFToken': window.djangoData?.csrfToken || '',
-                            'X-Requested-With': 'XMLHttpRequest'  // <-- ДОБАВЕТЕ ТОВА
+                            'X-CSRFToken': cartConfig.csrfToken || window.djangoData?.csrfToken || '',
+                            'X-Requested-With': 'XMLHttpRequest'
                         }
                     })
                     .then(response => {
@@ -465,10 +459,11 @@ const Orders = {
                     })
                     .then(data => {
                         if (data.success) {
-                            // Обновяваме брояча на количката
                             updateCartCount();
-                            // Презареждаме страницата
-                            location.reload();
+                            if (window.location.pathname === '/orders/') {
+                                fetchStatistics();
+                            }
+                            U.alert('Продуктът беше премахнат от количката.', 'success');
                         } else {
                             U.alert('Възникна грешка при премахване.', 'danger');
                         }
@@ -480,8 +475,7 @@ const Orders = {
                 }
             });
         });
-    }
-}
+    },
 
     initOrderFormset() {
         const addButton = document.getElementById('add-item');
@@ -525,7 +519,6 @@ const Orders = {
 /* ========== ПОТРЕБИТЕЛИ ========== */
 const Accounts = {
     init() {
-        // Форматиране на телефон при въвеждане
         const phoneInput = document.querySelector('input[name="phone_number"]');
         if (phoneInput) {
             phoneInput.addEventListener('input', e => {
@@ -533,11 +526,9 @@ const Accounts = {
             });
         }
 
-        // Валидация на регистрационна форма
         Forms.initFormValidation('registerForm');
         Forms.initFormValidation('profileEditForm');
 
-        // Потвърждение при изтриване на профил
         const deleteProfileBtn = document.querySelector('a[href*="profile_delete"]');
         if (deleteProfileBtn) {
             deleteProfileBtn.addEventListener('click', e => {
@@ -547,7 +538,6 @@ const Accounts = {
             });
         }
 
-        // Инициализация на password toggle за профила
         Common.initPasswordToggle();
     }
 };
@@ -575,10 +565,8 @@ const ScrollToTop = {
 };
 
 /* ========== ФУНКЦИИ ЗА КОЛИЧКАТА ========== */
-// Взимаме данните от сървъра, прехвърлени от Django шаблона
 const djangoData = window.djangoData || {};
 
-// Конфигурация за количката
 const cartConfig = {
     csrfToken: djangoData.csrfToken || '',
     cartApiUrl: djangoData.cartApiUrl || '/orders/cart/api/',
@@ -586,11 +574,41 @@ const cartConfig = {
 };
 
 /**
+ * Обновява статистиката на страницата с поръчки без презареждане
+ */
+function fetchStatistics() {
+    fetch('/orders/stats/api/')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            const totalOrdersEl = document.getElementById('total-orders');
+            const pendingOrdersEl = document.getElementById('pending-orders');
+            const totalRevenueEl = document.getElementById('total-revenue');
+            const avgOrderValueEl = document.getElementById('avg-order-value');
+
+            if (totalOrdersEl) totalOrdersEl.textContent = data.total_orders;
+            if (pendingOrdersEl) pendingOrdersEl.textContent = data.pending_orders;
+            if (totalRevenueEl) totalRevenueEl.textContent = data.total_revenue.toFixed(2) + ' €';
+            if (avgOrderValueEl) avgOrderValueEl.textContent = data.avg_order_value.toFixed(2) + ' €';
+        })
+        .catch(error => console.error('Грешка при обновяване на статистиката:', error));
+}
+
+/**
  * Обновява броя на артикулите в количката
  */
 function updateCartCount() {
     fetch(cartConfig.cartApiUrl)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             const cartCountElement = document.getElementById('cart-count');
             if (cartCountElement) {
@@ -600,6 +618,10 @@ function updateCartCount() {
                 } else {
                     cartCountElement.style.display = 'none';
                 }
+            }
+
+            if (window.location.pathname === '/orders/') {
+                fetchStatistics();
             }
         })
         .catch(error => console.error('Грешка при обновяване на количката:', error));
@@ -613,20 +635,28 @@ function updateCartCount() {
 function addToCart(productId, quantity = 1) {
     const url = `${cartConfig.addToCartUrl}${productId}/`;
 
-    // Използваме съществуващата функция U.alert за съобщения
     fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': cartConfig.csrfToken
+            'X-CSRFToken': cartConfig.csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
         },
-        body: JSON.stringify({ quantity: quantity })
+        body: JSON.stringify({ quantity: Number(quantity) })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             updateCartCount();
-            U.alert('Продуктът беше добавен в количката!', 'success');
+            if (window.location.pathname === '/orders/') {
+                fetchStatistics();
+            }
+            U.alert(data.message || 'Продуктът беше добавен в количката!', 'success');
         } else {
             U.alert('Възникна грешка при добавянето на продукта.', 'danger');
         }
@@ -639,18 +669,14 @@ function addToCart(productId, quantity = 1) {
 
 /* ========== ИНИЦИАЛИЗАЦИЯ ========== */
 function initAll() {
-    // Общи функционалности (винаги)
     Common.initScrollAnimation();
     Common.initDeleteConfirmation();
     Common.initAutoCloseAlerts();
     Common.initActiveNav();
-
-    // Password toggle (общ, но ще се инициализира и в Accounts)
     Common.initPasswordToggle();
 
     const path = window.location.pathname;
 
-    // Специфични за страници
     if (path.includes('product') || path.includes('product_form')) {
         Products.init();
     }
@@ -663,17 +689,19 @@ function initAll() {
         Accounts.init();
     }
 
-    // Scroll to top (винаги)
     ScrollToTop.init();
-
-    // Инициализация на количката (винаги)
     updateCartCount();
 
-    // Слушаме за събитие за обновяване на количката
+    if (window.location.pathname === '/orders/') {
+        fetchStatistics();
+    }
+
     window.addEventListener('cartUpdated', function() {
         updateCartCount();
+        if (window.location.pathname === '/orders/') {
+            fetchStatistics();
+        }
     });
 }
 
-// Стартиране при зареждане на страницата
 document.addEventListener('DOMContentLoaded', initAll);

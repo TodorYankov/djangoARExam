@@ -1,15 +1,53 @@
 # orders/views.py
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.urls import reverse_lazy
-from django.contrib import messages
-from django.db.models import Q
 import json
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db.models import Q, Sum, F, DecimalField, ExpressionWrapper
 from django.http import JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse_lazy
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+
+from .forms import OrderForm, OrderCreateForm, OrderStatusForm, OrderItemForm
 from .models import Order, OrderItem
-from .forms import OrderForm, OrderCreateForm, OrderItemFormSet, OrderStatusForm, OrderItemForm
-from products.models import Product
+from products.models import Product, Category
+
+
+def get_orders_statistics():
+    """Обща статистика за поръчките"""
+    total_orders = Order.objects.count()
+    pending_orders = Order.objects.filter(status='pending').count()
+
+    total_expr = ExpressionWrapper(
+        F('quantity') * F('price_at_time'),
+        output_field=DecimalField(max_digits=12, decimal_places=2)
+    )
+
+    total_revenue = OrderItem.objects.aggregate(
+        total=Sum(total_expr)
+    )['total'] or 0
+
+    avg_order_value = total_revenue / total_orders if total_orders > 0 else 0
+
+    return {
+        'total_orders': total_orders,
+        'pending_orders': pending_orders,
+        'total_revenue': total_revenue,
+        'avg_order_value': avg_order_value,
+    }
+
+
+def statistics_api(request):
+    """API за статистика на поръчките (AJAX)"""
+    stats = get_orders_statistics()
+
+    return JsonResponse({
+        'total_orders': stats['total_orders'],
+        'pending_orders': stats['pending_orders'],
+        'total_revenue': float(stats['total_revenue']),
+        'avg_order_value': float(stats['avg_order_value']),
+    })
 
 
 # ========== ФУНКЦИИ ЗА КОЛИЧКАТА ==========
@@ -20,10 +58,14 @@ def cart_view(request):
     total = sum(item['price'] * item['quantity'] for item in cart)
     cart_count = sum(item['quantity'] for item in cart)
 
+    # Вземи първите 3 категории (сортирани по ID - първо създадените)
+    popular_categories = Category.objects.all().order_by('id')[:3]
+
     context = {
         'cart': cart,
         'total': total,
-        'cart_count': cart_count
+        'cart_count': cart_count,
+        'popular_categories': popular_categories,  # Добавено за динамичните бутони
     }
     return render(request, 'orders/cart.html', context)
 
@@ -31,75 +73,85 @@ def cart_view(request):
 @login_required
 def update_cart_item(request, product_id):
     """Обновява количество на продукт в количката"""
-    if request.method == 'POST':
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid method'}, status=400)
+
+    try:
         quantity = int(request.POST.get('quantity', 1))
-        cart = request.session.get('cart', [])
+    except (TypeError, ValueError):
+        return JsonResponse({'success': False, 'error': 'Invalid quantity'}, status=400)
 
-        for item in cart:
-            if item['product_id'] == product_id:
-                if quantity > 0:
-                    item['quantity'] = quantity
-                else:
-                    cart.remove(item)
-                break
+    cart = request.session.get('cart', [])
 
-        request.session['cart'] = cart
+    for item in cart:
+        if item['product_id'] == product_id:
+            if quantity > 0:
+                item['quantity'] = quantity
+            else:
+                cart.remove(item)
+            break
 
-        # Проверка дали заявката е AJAX
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({
-                'success': True,
-                'cart_count': sum(item['quantity'] for item in cart),
-                'total': sum(item['price'] * item['quantity'] for item in cart)
-            })
+    request.session['cart'] = cart
+    request.session.modified = True
 
-        messages.success(request, 'Количеството беше обновено успешно.')
-        return redirect('orders:cart')
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'cart_count': sum(item['quantity'] for item in cart),
+            'total': sum(item['price'] * item['quantity'] for item in cart),
+        })
 
-    return JsonResponse({'success': False, 'error': 'Invalid method'}, status=400)
+    messages.success(request, 'Количеството беше обновено успешно.')
+    return redirect('orders:cart')
 
 
 @login_required
 def remove_from_cart(request, product_id):
     """Премахва продукт от количката"""
-    if request.method == 'POST':
-        cart = request.session.get('cart', [])
-        cart = [item for item in cart if item['product_id'] != product_id]
-        request.session['cart'] = cart
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid method'}, status=400)
 
-        # Проверка дали заявката е AJAX (идва от JavaScript)
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            # За AJAX заявки връщаме JSON
-            return JsonResponse({
-                'success': True,
-                'cart_count': len(cart),
-                'total': sum(item['price'] * item['quantity'] for item in cart)
-            })
+    cart = request.session.get('cart', [])
+    cart = [item for item in cart if item['product_id'] != product_id]
 
-        # За нормални заявки (без JavaScript) правим redirect
-        messages.success(request, 'Продуктът беше премахнат от количката.')
-        return redirect('orders:cart')
+    request.session['cart'] = cart
+    request.session.modified = True
 
-    return JsonResponse({'success': False, 'error': 'Invalid method'}, status=400)
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'cart_count': sum(item['quantity'] for item in cart),
+            'total': sum(item['price'] * item['quantity'] for item in cart),
+        })
+
+    messages.success(request, 'Продуктът беше премахнат от количката.')
+    return redirect('orders:cart')
 
 
-# ========== ДОБАВЯНЕ В КОЛИЧКАТА ==========
 @login_required
 def add_to_cart(request, product_id):
     """Добавя продукт в количката (сесия) - с поддръжка на AJAX"""
     product = get_object_or_404(Product, id=product_id, is_available=True)
 
-    # Инициализиране на количката в сесията, ако не съществува
+    quantity = 1
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        try:
+            data = json.loads(request.body)
+            quantity = int(data.get('quantity', 1))
+        except (json.JSONDecodeError, TypeError, ValueError):
+            quantity = 1
+
+    quantity = max(1, quantity)
+
     if 'cart' not in request.session:
         request.session['cart'] = []
 
     cart = request.session['cart']
 
-    # Проверка дали продуктът вече е в количката
     found = False
     for item in cart:
         if item['product_id'] == product_id:
-            item['quantity'] += 1
+            item['quantity'] += quantity
             found = True
             break
 
@@ -108,33 +160,32 @@ def add_to_cart(request, product_id):
             'product_id': product.id,
             'name': product.name,
             'price': float(product.price),
-            'quantity': 1,
-            'image': product.image.url if product.image else None
+            'quantity': quantity,
+            'image': product.image.url if product.image else None,
         })
 
     request.session['cart'] = cart
+    request.session.modified = True
 
-    # Проверка дали заявката е AJAX
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({
             'success': True,
             'cart_count': sum(item['quantity'] for item in cart),
             'total': sum(item['price'] * item['quantity'] for item in cart),
-            'message': f'{product.name} беше добавен в количката!'
+            'message': f'{product.name} беше добавен в количката!',
         })
 
     messages.success(request, f'{product.name} беше добавен в количката!')
     return redirect(request.META.get('HTTP_REFERER', 'products:product_list'))
 
-# ========== AJAX ФУНКЦИИ ЗА КОЛИЧКАТА ==========
+
 def cart_api(request):
     """API endpoint за количката (AJAX) - публичен достъп"""
-    # Ако потребителят не е логнат, връщаме празна количка
     if not request.user.is_authenticated:
         return JsonResponse({
             'cart': [],
             'total': 0,
-            'cart_count': 0
+            'cart_count': 0,
         })
 
     if request.method == 'GET':
@@ -143,25 +194,34 @@ def cart_api(request):
         return JsonResponse({
             'cart': cart,
             'total': total,
-            'cart_count': sum(item['quantity'] for item in cart)
+            'cart_count': sum(item['quantity'] for item in cart),
         })
 
-    elif request.method == 'POST':
-        data = json.loads(request.body)
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+        except (json.JSONDecodeError, TypeError):
+            return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+
         action = data.get('action')
         product_id = data.get('product_id')
-        quantity = data.get('quantity', 1)
 
+        try:
+            quantity = int(data.get('quantity', 1))
+        except (TypeError, ValueError):
+            quantity = 1
+
+        quantity = max(1, quantity)
         cart = request.session.get('cart', [])
 
         if action == 'add':
-            # Добавяне на продукт
             found = False
             for item in cart:
                 if item['product_id'] == product_id:
                     item['quantity'] += quantity
                     found = True
                     break
+
             if not found:
                 product = get_object_or_404(Product, id=product_id)
                 cart.append({
@@ -169,11 +229,10 @@ def cart_api(request):
                     'name': product.name,
                     'price': float(product.price),
                     'quantity': quantity,
-                    'image': product.image.url if product.image else None
+                    'image': product.image.url if product.image else None,
                 })
 
         elif action == 'update':
-            # Обновяване на количество
             for item in cart:
                 if item['product_id'] == product_id:
                     if quantity > 0:
@@ -183,30 +242,30 @@ def cart_api(request):
                     break
 
         elif action == 'remove':
-            # Премахване на продукт
             cart = [item for item in cart if item['product_id'] != product_id]
 
+        else:
+            return JsonResponse({'success': False, 'error': 'Invalid action'}, status=400)
+
         request.session['cart'] = cart
+        request.session.modified = True
+
         total = sum(item['price'] * item['quantity'] for item in cart)
 
         return JsonResponse({
             'success': True,
             'cart': cart,
             'total': total,
-            'cart_count': sum(item['quantity'] for item in cart)
+            'cart_count': sum(item['quantity'] for item in cart),
         })
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 
-# ========== СЪЗДАВАНЕ НА ПОРЪЧКА ОТ КОЛИЧКАТА ==========
 def order_create(request):
     """Създаване на нова поръчка от количката"""
-
-    # Вземаме количката от сесията
     cart = request.session.get('cart', [])
 
-    # Проверка дали количката не е празна
     if not cart:
         messages.error(request, 'Количката е празна. Добавете продукти преди да направите поръчка.')
         return redirect('orders:cart')
@@ -215,19 +274,15 @@ def order_create(request):
         form = OrderCreateForm(request.POST)
 
         if form.is_valid():
-            # 1. Записваме поръчката
             order = form.save(commit=False)
 
-            # Ако потребителят е логнат, свързваме поръчката с него
             if request.user.is_authenticated:
                 order.user = request.user
-                # Попълваме имената и имейла от профила
                 order.guest_name = request.user.get_full_name() or request.user.username
                 order.guest_email = request.user.email
 
             order.save()
 
-            # 2. Записваме артикулите от количката
             for item in cart:
                 product = get_object_or_404(Product, id=item['product_id'])
                 OrderItem.objects.create(
@@ -237,11 +292,10 @@ def order_create(request):
                     price_at_time=product.price
                 )
 
-            # 3. Изчистване на количката след успешна поръчка
             if 'cart' in request.session:
                 del request.session['cart']
+                request.session.modified = True
 
-            # 4. Актуализираме профила с въведения адрес и телефон, ако липсват
             if request.user.is_authenticated:
                 user = request.user
                 if not user.shipping_address and form.cleaned_data.get('shipping_address'):
@@ -254,27 +308,21 @@ def order_create(request):
 
             messages.success(request, 'Благодарим за поръчката! Ще се свържем с вас.')
             return redirect('orders:order_detail', pk=order.id)
-        else:
-            # Показване на грешки
-            messages.error(request, 'Моля, поправете грешките във формата.')
+
+        messages.error(request, 'Моля, поправете грешките във формата.')
     else:
-        # GET заявка – създаваме форма с предварително попълнени данни от потребителя
         initial_data = {}
 
-        # Ако потребителят е логнат, опитваме се да вземем данните от профила му
         if request.user.is_authenticated:
-            # Проверка за адрес - използваме shipping_address или address
             shipping_address = getattr(request.user, 'shipping_address', None) or getattr(request.user, 'address', None)
             if shipping_address:
                 initial_data['shipping_address'] = shipping_address
 
-            # Проверка за телефон - използваме phone_number (не phone)
             if hasattr(request.user, 'phone_number') and request.user.phone_number:
                 initial_data['guest_phone'] = request.user.phone_number
 
         form = OrderCreateForm(initial=initial_data, request=request)
 
-    # Изчисляваме общата сума за показване
     total = sum(item['price'] * item['quantity'] for item in cart)
 
     return render(request, 'orders/order_form.html', {
@@ -283,9 +331,10 @@ def order_create(request):
         'total': total,
     })
 
+
 # ========== КЛАСОВИ ИЗГЛЕДИ ==========
 class OrderListView(ListView):
-    """Списък с поръчки"""
+    """Списък с поръчки със статистика"""
     model = Order
     template_name = 'orders/order_list.html'
     context_object_name = 'orders'
@@ -294,27 +343,37 @@ class OrderListView(ListView):
     def get_queryset(self):
         queryset = Order.objects.all()
 
-        # Филтриране по състояние
         status = self.request.GET.get('status')
         if status:
             queryset = queryset.filter(status=status)
 
-        # Търсене
         search_query = self.request.GET.get('search')
         if search_query:
-            # Първо провери дали не търси ID
             if search_query.isdigit():
                 queryset = queryset.filter(id=int(search_query))
             else:
-                # Търсене по име на клиент (от профила или от поръчката)
                 queryset = queryset.filter(
                     Q(user__first_name__icontains=search_query) |
                     Q(user__last_name__icontains=search_query) |
                     Q(user__username__icontains=search_query) |
-                    Q(user__email__icontains=search_query)
+                    Q(user__email__icontains=search_query) |
+                    Q(guest_name__icontains=search_query) |
+                    Q(guest_email__icontains=search_query) |
+                    Q(guest_phone__icontains=search_query)
                 )
 
         return queryset.order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        stats = get_orders_statistics()
+        context['total_orders'] = stats['total_orders']
+        context['pending_orders'] = stats['pending_orders']
+        context['total_revenue'] = stats['total_revenue']
+        context['avg_order_value'] = stats['avg_order_value']
+
+        return context
 
 
 class OrderDetailView(DetailView):
@@ -379,3 +438,4 @@ class OrderItemCreateView(CreateView):
         order_item.save()
         messages.success(self.request, f'Артикулът {order_item.product.name} беше добавен към поръчката.')
         return redirect('orders:order_detail', pk=order.id)
+

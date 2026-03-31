@@ -45,12 +45,39 @@ class Order(models.Model):
     def __str__(self):
         if self.user:
             return f"Поръчка {self.id} - {self.user.username}"
-        return f"Поръчка {self.id} - {self.guest_name}"
+        return f"Поръчка {self.id} - {self.guest_name or 'Гост'}"
 
     @property
     def total_amount(self):
         """Изчислява общата сума на поръчката"""
         return sum(item.get_total() for item in self.items.all())
+
+    @property
+    def customer_name(self):
+        """Име на клиента за шаблоните"""
+        if self.user:
+            full_name = self.user.get_full_name().strip()
+            return full_name or self.user.username
+        return self.guest_name or 'Гост'
+
+    @property
+    def customer_email(self):
+        """Имейл на клиента за шаблоните"""
+        if self.user and self.user.email:
+            return self.user.email
+        return self.guest_email or '-'
+
+    @property
+    def customer_phone(self):
+        """Телефон на клиента за шаблоните"""
+        if self.user and hasattr(self.user, 'phone_number') and self.user.phone_number:
+            return self.user.phone_number
+        return self.guest_phone or '-'
+
+    @property
+    def address(self):
+        """Адрес за шаблоните"""
+        return self.shipping_address or '-'
 
 
 class OrderItem(models.Model):
@@ -61,3 +88,6 @@ class OrderItem(models.Model):
 
     def get_total(self):
         return self.quantity * self.price_at_time
+
+    def __str__(self):
+        return f"{self.product} x {self.quantity}"

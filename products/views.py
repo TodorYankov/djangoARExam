@@ -95,10 +95,16 @@ class ProductListView(ListView):
     def get_queryset(self):
         queryset = Product.objects.filter(is_available=True)
 
-        # 1. Филтър по категория
-        category_id = self.request.GET.get('category')
-        if category_id:
-            queryset = queryset.filter(category_id=category_id)
+        # 1. Филтър по категория (променено да работи със slug)
+        category_slug = self.request.GET.get('category')
+        if category_slug:
+            try:
+                # Намираме категорията по slug
+                category = Category.objects.get(slug=category_slug)
+                queryset = queryset.filter(category=category)
+            except Category.DoesNotExist:
+                # Ако категорията не съществува, връщаме празен резултат
+                return queryset.none()
 
         # 2. Филтър по тип на продукт
         product_type = self.request.GET.get('type')
@@ -152,8 +158,8 @@ class ProductListView(ListView):
         context['categories'] = Category.objects.all()
         context['product_types'] = Product.PRODUCT_TYPES
 
-        # Създаване на речници за бърз достъп
-        context['categories_dict'] = {str(cat.id): cat.name for cat in context['categories']}
+        # Създаване на речници за бърз достъп (slug -> име)
+        context['categories_dict'] = {cat.slug: cat.name for cat in context['categories']}
 
         # Вземане на текущите филтри
         current_filters = {
@@ -274,9 +280,30 @@ class CategoryListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Всички категории'
-        # Брой продукти във всяка категория
+
+        # Брой продукти във всяка категория и изчисляване на статистики
+        total_products = 0
+        max_products = 0
+
         for category in context['categories']:
-            category.product_count = Product.objects.filter(category=category).count()
+            count = Product.objects.filter(category=category).count()
+            category.product_count = count  # Запазваме за шаблона
+            total_products += count
+            if count > max_products:
+                max_products = count
+
+        # Добави статистиките в контекста
+        context['total_products'] = total_products
+        context['max_products'] = max_products
+
+        # Топ 3 категории с най-много продукти
+        top_categories = sorted(
+            context['categories'],
+            key=lambda cat: cat.product_count,
+            reverse=True
+        )[:3]
+        context['top_categories'] = top_categories
+
         return context
 
 
