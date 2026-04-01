@@ -164,12 +164,9 @@ pip install -r requirements.txt
 4️⃣ Configure PostgreSQL | Конфигуриране на PostgreSQL
 sql
 sudo -u postgres psql
-CREATE DATABASE techshop_db;
-CREATE USER techshop_user WITH PASSWORD 'your_password';
-ALTER ROLE techshop_user SET client_encoding TO 'utf8';
-ALTER ROLE techshop_user SET default_transaction_isolation TO 'read committed';
-ALTER ROLE techshop_user SET timezone TO 'UTC';
-GRANT ALL PRIVILEGES ON DATABASE techshop_db TO techshop_user;
+CREATE DATABASE djangoARExam;
+-- Use existing postgres user or create a new one
+GRANT ALL PRIVILEGES ON DATABASE djangoARExam TO postgres;
 \q
 5️⃣ Environment variables | Променливи на средата
 Create .env file in the project root | Създайте файл .env в главната директория:
@@ -179,12 +176,14 @@ SECRET_KEY=your-secret-key-here
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
 
-DB_NAME=techshop_db
-DB_USER=techshop_user
+# Database - PostgreSQL
+DB_NAME=djangoARExam
+DB_USER=postgres
 DB_PASSWORD=your_password
 DB_HOST=localhost
 DB_PORT=5432
 
+# Celery
 CELERY_BROKER_URL=redis://localhost:6379/0
 CELERY_RESULT_BACKEND=redis://localhost:6379/0
 REDIS_URL=redis://localhost:6379/0
@@ -247,9 +246,9 @@ POST	/api/token/	Obtain JWT token	Получаване на JWT токен
 POST	/api/token/refresh/	Refresh JWT token	Обновяване на JWT токен
 GET	/api/test-task/	Test Celery task	Тест на Celery задача
 🧪 Testing | Тестване
-The project includes 46 tests covering models, forms, and views.
+The project includes 67 tests covering models, forms, and views.
 
-Проектът включва 46 теста, покриващи модели, форми и изгледи.
+Проектът включва 67 теста, покриващи модели, форми и изгледи.
 
 bash
 # Run all tests | Стартиране на всички тестове
@@ -261,31 +260,34 @@ python manage.py test products
 python manage.py test reviews
 Expected output | Очакван резултат:
 
-
+text
 Ran 67 tests in 94.748s
 OK
-
-### ✅ Manual Test Scenario | Ръчен тестов сценарий
-
+✅ Manual Test Scenario | Ръчен тестов сценарий
 You can manually test the complete order flow with a predefined test user:
 
-**Test credentials | Тестови данни за вход:**
-- **Username | Потребител:** `testuser`
-- **Password | Парола:** `testpass123`
+Test credentials | Тестови данни за вход:
 
-**Successfully executed test | Успешно изпълнен тест:**
+Username | Потребител: testuser
 
-1. Log in with `testuser` / `testpass123`
-2. Browse products and add **two different products** to the cart
-3. Go to cart and proceed to checkout
-4. Complete the order
+Password | Парола: testpass123
 
-> ✅ **Result | Резултат:** Order with two products was successfully created and appears in order history.
-> 
-> ✅ **Резултат:** Поръчка с два продукта беше успешно създадена и се вижда в историята на поръчките.
+Successfully executed test | Успешно изпълнен тест:
+
+Log in with testuser / testpass123
+
+Browse products and add two different products to the cart
+
+Go to cart and proceed to checkout
+
+Complete the order
+
+✅ Result | Резултат: Order with two products was successfully created and appears in order history.
+
+✅ Резултат: Поръчка с два продукта беше успешно създадена и се вижда в историята на поръчките.
 
 📁 Project Structure | Структура на проекта
-
+text
 djangoARExam/
 ├── 📁 accounts/          # User profiles, authentication | Потребителски профили, автентикация
 ├── 📁 core/              # Main pages, common views | Основни страници, общи изгледи
@@ -309,7 +311,6 @@ Todor Yankov | Тодор Янков
 
 GitHub: @TodorYankov
 
-README updated: March 2026 | README актуализиран: март 2026 г.
+README updated: April 2026 | README актуализиран: април 2026 г.
 
 Project for Django Advanced course – SoftUni | Проект за курса Django Advanced – SoftUni
-

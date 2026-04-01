@@ -1,4 +1,4 @@
-# templates/orders/order_form.html
+<!-- templates/orders/order_form.html -->
 {% extends 'base.html' %}
 {% load static %}
 
@@ -148,7 +148,7 @@
                                         <th class="text-center">Цена</th>
                                         <th class="text-center">Количество</th>
                                         <th class="text-end">Общо</th>
-                                     <tr>
+                                    </tr>
                                 </thead>
                                 <tbody>
                                     {% for item in cart %}
@@ -185,7 +185,7 @@
                                 <tfoot class="table-active">
                                     <tr>
                                         <td colspan="3" class="text-end fw-bold">Обща сума:</td>
-                                        <td class="text-end fw-bold text-primary fs-5">{{ total|floatformat:2 }} €</td>
+                                        <td class="text-end fw-bold text-primary fs-5" id="order-total">{{ total|floatformat:2 }} €</td>
                                     </tr>
                                 </tfoot>
                             </table>

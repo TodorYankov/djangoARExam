@@ -1,18 +1,22 @@
 """
 settings.py
-Django settings for techShop project.
+Django settings for djangoARExam project.
 """
 
-from pathlib import Path
 import os
+from pathlib import Path
+from dotenv import load_dotenv
 from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-_#0)go=!vkb9v6_305es^kjr0dwp4w%towon=+53ga0vf6j@wq'
 
+# Зареди .env
+load_dotenv()
+
+SECRET_KEY = os.environ.get('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -87,24 +91,24 @@ TEMPLATES = [
 WSGI_APPLICATION = 'djangoARExam.wsgi.application'
 
 # Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-# PostgreSQL (коментиран, но готов за production)
 # DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.postgresql",
-#         "NAME": "techshop_db",
-#         "USER": "postgres",
-#         "PASSWORD": "Postgres_password!",
-#         "HOST": "localhost",
-#         "PORT": "5432",
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+# PostgreSQL (разкоментиран и готов за production)
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "djangoARExam",
+        "USER": "postgres",
+        "PASSWORD": "123456789",
+        "HOST": "localhost",
+        "PORT": "5432",
+    }
+}
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

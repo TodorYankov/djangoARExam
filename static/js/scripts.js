@@ -272,7 +272,7 @@ const Orders = {
     initOrderFormHandlers() {
         if (window.location.pathname.includes('/orders/create/')) {
             const shippingAddressField = document.querySelector('textarea[name="shipping_address"]');
-            const phoneField = document.querySelector('input[name="phone"]');
+            const phoneField = document.querySelector('input[name="guest_phone"]');
 
             if (shippingAddressField && phoneField) {
                 const hasAddress = shippingAddressField.value.trim();
@@ -337,7 +337,7 @@ const Orders = {
                 }
             }
 
-            const phoneInput = document.querySelector('input[name="phone"]');
+            const phoneInput = document.querySelector('input[name="guest_phone"]');
             if (phoneInput) {
                 phoneInput.addEventListener('input', function(e) {
                     let value = e.target.value.replace(/\D/g, '');
@@ -358,7 +358,7 @@ const Orders = {
             if (orderForm) {
                 orderForm.addEventListener('submit', function(e) {
                     const address = document.querySelector('textarea[name="shipping_address"]')?.value.trim();
-                    const phone = document.querySelector('input[name="phone"]')?.value.trim();
+                    const phone = document.querySelector('input[name="guest_phone"]')?.value.trim();
 
                     if (!address) {
                         e.preventDefault();
@@ -370,12 +370,19 @@ const Orders = {
                     if (!phone) {
                         e.preventDefault();
                         U.alert('Моля, въведете телефон за връзка.', 'warning');
-                        document.querySelector('input[name="phone"]')?.focus();
+                        document.querySelector('input[name="guest_phone"]')?.focus();
                         return false;
                     }
 
-                    const totalElement = document.querySelector('.text-primary.fw-bold');
-                    const totalText = totalElement ? totalElement.innerText : '';
+                    // Вземи правилната обща сума
+                    let totalText = '';
+                    const orderTotal = document.getElementById('order-total');
+                    if (orderTotal) {
+                        totalText = orderTotal.innerText;
+                    } else {
+                        const summaryTotal = document.querySelector('.order-summary .text-primary.fw-bold');
+                        totalText = summaryTotal ? summaryTotal.innerText : '';
+                    }
 
                     if (U.confirm('Сигурни ли сте, че искате да потвърдите поръчката на стойност ' + totalText + '?')) {
                         return true;
