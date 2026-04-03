@@ -122,34 +122,6 @@
     </div>
 </div>
 {% endblock %}
-✅ Шаблон за успех (contact_success.html):
-html
-{% extends 'base.html' %}
-{% load static %}
 
-{% block title %}Съобщението е изпратено - TechShop{% endblock %}
-
-{% block content %}
-<div class="container py-5">
-    <div class="row">
-        <div class="col-lg-8 mx-auto text-center">
-            <div class="card shadow-sm border-success">
-                <div class="card-body py-5">
-                    <div class="mb-4">
-                        <i class="fas fa-check-circle text-success" style="font-size: 80px;"></i>
-                    </div>
-                    <h2 class="text-success mb-3">Благодарим ви!</h2>
-                    <p class="lead">Вашето съобщение беше изпратено успешно.</p>
-                    <p class="text-muted">Ще се свържем с вас в рамките на 24 часа.</p>
-                    <hr>
-                    <a href="{% url 'core:index' %}" class="btn btn-primary mt-3">
-                        <i class="fas fa-home me-2"></i> Начало
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
 
 
