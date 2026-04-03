@@ -11,8 +11,6 @@ from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
-
 # Зареди .env
 load_dotenv()
 
@@ -102,11 +100,11 @@ WSGI_APPLICATION = 'djangoARExam.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "djangoARExam",
-        "USER": "postgres",
-        "PASSWORD": "123456789",
-        "HOST": "localhost",
-        "PORT": "5432",
+        "NAME": os.environ.get('DB_NAME', 'djangoARExam'),
+        "USER": os.environ.get('DB_USER', 'postgres'),
+        "PASSWORD": os.environ.get('DB_PASSWORD', '123456789'),
+        "HOST": os.environ.get('DB_HOST', 'localhost'),
+        "PORT": os.environ.get('DB_PORT', '5432'),
     }
 }
 
@@ -148,17 +146,16 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Email settings (за разработка - използва конзолата)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-# За production използвайте SMTP:
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'your-email@gmail.com'
-# EMAIL_HOST_PASSWORD = 'your-app-password'
-# DEFAULT_FROM_EMAIL = 'TechShop <noreply@techshop.bg>'
+# ========== EMAIL CONFIGURATION ==========
+# Всички настройки се четат от .env файла
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+CONTACT_EMAIL = os.environ.get('CONTACT_EMAIL', 'webdesign3@abv.bg')
 
 # ========== CELERY CONFIGURATION ==========
 # Определяне на средата
@@ -231,38 +228,5 @@ SIMPLE_JWT = {
     'UPDATE_LAST_LOGIN': True,
 }
 
-# За да работи локализацията на български
 import locale
-import sys
-
-# Опит за зареждане на българска локализация
-try:
-    locale.setlocale(locale.LC_TIME, 'bg_BG.UTF-8')
-except locale.Error:
-    # Проверка дали сме в development среда
-    from django.conf import settings
-
-    if settings.DEBUG:
-        # Показваме инструкции само в development
-        print("\n" + "=" * 70)
-        print("⚠️  БЪЛГАРСКАТА ЛОКАЛИЗАЦИЯ НЕ Е ИНСТАЛИРАНА")
-        print("=" * 70)
-        print("\nЗа да инсталирате българска локализация:")
-        print("\n📌 За Ubuntu/Debian:")
-        print("   sudo apt-get install language-pack-bg")
-        print("\n📌 За Windows:")
-        print("   - Отворете Control Panel")
-        print("   - Region → Administrative → Change system locale")
-        print("   - Изберете 'Bulgarian (Bulgaria)'")
-        print("   - Рестартирайте компютъра")
-        print("\n📌 За Mac:")
-        print("   locale-gen bg_BG.UTF-8")
-        print("\n🔧 За момента се използва английска локализация\n")
-    else:
-        # В production - само лог
-        import logging
-
-        logging.warning("Bulgarian locale not available, using English")
-
-    # Използваме системната локализация като fallback
-    locale.setlocale(locale.LC_TIME, '')
+locale.setlocale(locale.LC_TIME, 'en_US.UTF-8')

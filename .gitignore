@@ -18,4 +18,12 @@ db.sqlite3
 .idea/
 .vscode/
 
+# Static and media
+staticfiles/
+media/
+
+
 .env
+
+
+

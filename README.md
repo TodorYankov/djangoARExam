@@ -260,31 +260,37 @@ python manage.py test products
 python manage.py test reviews
 Expected output | Очакван резултат:
 
-text
 Ran 67 tests in 94.748s
 OK
-✅ Manual Test Scenario | Ръчен тестов сценарий
+
+### ✅ Manual Test Scenario | Ръчен тестов сценарий
+
 You can manually test the complete order flow with a predefined test user:
 
-Test credentials | Тестови данни за вход:
+**Test credentials** | **Тестови данни за вход:**
 
-Username | Потребител: testuser
+| Username | Password | Role |
+|----------|----------|------|
+| testuser | testpass123 | Regular Customer |
+| teststaff | staffpass123 | Staff Member |
+| testmanager | managerpass123 | Manager |
 
-Password | Парола: testpass123
+**Successfully executed test** | **Успешно изпълнен тест:**
 
-Successfully executed test | Успешно изпълнен тест:
+1. Log in with `testuser` / `testpass123`
+2. Browse products and add **two different products** to the cart
+3. Go to cart and proceed to checkout
+4. Complete the order
 
-Log in with testuser / testpass123
+> ✅ **Result** | **Резултат:** Order with two products was successfully created and appears in order history.
+> 
+> ✅ **Резултат:** Поръчка с два продукта беше успешно създадена и се вижда в историята на поръчките.
 
-Browse products and add two different products to the cart
+### 📦 Sample Data
 
-Go to cart and proceed to checkout
-
-Complete the order
-
-✅ Result | Резултат: Order with two products was successfully created and appears in order history.
-
-✅ Резултат: Поръчка с два продукта беше успешно създадена и се вижда в историята на поръчките.
+To load sample products and categories:
+```bash
+python manage.py loaddata initial_data.json
 
 📁 Project Structure | Структура на проекта
 text

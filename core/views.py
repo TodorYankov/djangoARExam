@@ -56,8 +56,8 @@ def contact_view(request):
                     f'Ново съобщение от {form.cleaned_data["name"]}',
                     form.cleaned_data['message'],
                     form.cleaned_data['email'],
-                    [settings.DEFAULT_FROM_EMAIL or 'admin@example.com'],
-                    fail_silently=True,
+                    [settings.DEFAULT_FROM_EMAIL],
+                    fail_silently=False,
                 )
             except:
                 pass

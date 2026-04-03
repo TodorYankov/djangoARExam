@@ -1,65 +1,150 @@
 <!-- templates/core/contact.html -->
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}{{ title }}{% endblock %}
+{% block title %}Контакт с нас - TechShop{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1 class="mb-4">{{ page_title }}</h1>
-
+<div class="container py-5">
     <div class="row">
-        <div class="col-md-6">
-            <div class="card">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-envelope me-2"></i>
+                        Свържете се с нас
+                    </h4>
+                </div>
                 <div class="card-body">
-                    <h3 class="card-title">Контактна форма</h3>
-                    <form method="post" action="#">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <p class="text-muted mb-4">
+                        Имате въпрос или предложение? Попълнете формата по-долу и ще се свържем с вас възможно най-скоро.
+                    </p>
+
+                    <form method="post">
                         {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="name" class="form-label">Име</label>
-                            <input type="text" class="form-control" id="name" required>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.name.id_for_label }}" class="form-label">
+                                    <i class="fas fa-user me-1"></i> Вашето име *
+                                </label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                    <div class="text-danger small">{{ form.name.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">
+                                    <i class="fas fa-envelope me-1"></i> Вашият имейл *
+                                </label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger small">{{ form.email.errors }}</div>
+                                {% endif %}
+                            </div>
                         </div>
+
                         <div class="mb-3">
-                            <label for="email" class="form-label">Имейл</label>
-                            <input type="email" class="form-control" id="email" required>
+                            <label for="{{ form.subject.id_for_label }}" class="form-label">
+                                <i class="fas fa-tag me-1"></i> Относно *
+                            </label>
+                            {{ form.subject }}
+                            {% if form.subject.errors %}
+                                <div class="text-danger small">{{ form.subject.errors }}</div>
+                            {% endif %}
                         </div>
+
                         <div class="mb-3">
-                            <label for="message" class="form-label">Съобщение</label>
-                            <textarea class="form-control" id="message" rows="4" required></textarea>
+                            <label for="{{ form.message.id_for_label }}" class="form-label">
+                                <i class="fas fa-comment me-1"></i> Съобщение *
+                            </label>
+                            {{ form.message }}
+                            {% if form.message.errors %}
+                                <div class="text-danger small">{{ form.message.errors }}</div>
+                            {% endif %}
                         </div>
-                        <button type="submit" class="btn btn-primary">Изпрати</button>
+
+                        <div class="alert alert-info small">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Ще се свържем с вас в рамките на 24 часа.
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i> Изпрати съобщение
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="col-md-6">
-            <div class="card">
+    <!-- Контактна информация -->
+    <div class="row mt-5">
+        <div class="col-md-4 mb-3">
+            <div class="card text-center h-100">
                 <div class="card-body">
-                    <h3 class="card-title">Контактна информация</h3>
+                    <i class="fas fa-map-marker-alt fa-3x text-primary mb-3"></i>
+                    <h5>Адрес</h5>
+                    <p class="text-muted">гр. София, бул. "Цариградско шосе" №1</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="fas fa-phone fa-3x text-primary mb-3"></i>
+                    <h5>Телефон</h5>
+                    <p class="text-muted">02 123 4567<br>0888 123 456</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="fas fa-envelope fa-3x text-primary mb-3"></i>
+                    <h5>Имейл</h5>
+                    <p class="text-muted">info@techshop.bg<br>sales@techshop.bg</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+✅ Шаблон за успех (contact_success.html):
+html
+{% extends 'base.html' %}
+{% load static %}
 
-                    <div class="mb-4">
-                        <h5><i class="fas fa-map-marker-alt text-primary"></i> Адрес</h5>
-                        <p>гр. София, бул. "Цариградско шосе" №1</p>
-                    </div>
+{% block title %}Съобщението е изпратено - TechShop{% endblock %}
 
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto text-center">
+            <div class="card shadow-sm border-success">
+                <div class="card-body py-5">
                     <div class="mb-4">
-                        <h5><i class="fas fa-phone text-primary"></i> Телефони</h5>
-                        <p>02 123 4567</p>
-                        <p>0888 123 456</p>
+                        <i class="fas fa-check-circle text-success" style="font-size: 80px;"></i>
                     </div>
-
-                    <div class="mb-4">
-                        <h5><i class="fas fa-envelope text-primary"></i> Имейл</h5>
-                        <p>info@techshop.bg</p>
-                        <p>sales@techshop.bg</p>
-                    </div>
-
-                    <div class="mb-4">
-                        <h5><i class="fas fa-clock text-primary"></i> Работно време</h5>
-                        <p>Понеделник - Петък: 9:00 - 18:00</p>
-                        <p>Събота: 10:00 - 16:00</p>
-                        <p>Неделя: Почивен ден</p>
-                    </div>
+                    <h2 class="text-success mb-3">Благодарим ви!</h2>
+                    <p class="lead">Вашето съобщение беше изпратено успешно.</p>
+                    <p class="text-muted">Ще се свържем с вас в рамките на 24 часа.</p>
+                    <hr>
+                    <a href="{% url 'core:index' %}" class="btn btn-primary mt-3">
+                        <i class="fas fa-home me-2"></i> Начало
+                    </a>
                 </div>
             </div>
         </div>
