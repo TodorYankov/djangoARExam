@@ -56,8 +56,7 @@ This project was created as an exam project for the **Django Advanced** course a
 
 | 🇬🇧 English | 🇧🇬 Български |
 |------------|--------------|
-| **Current project:** http://83.228.97.7/ | **Текущ проект:** http://83.228.97.7/ |
-| **Previous exam:** http://83.228.97.7/2/ | **Предишен изпит:** http://83.228.97.7/2/ |
+| **Current project:** https://web6.site/django/ | **Текущ проект:** https://web6.site/django/ |
 
 ---
 
