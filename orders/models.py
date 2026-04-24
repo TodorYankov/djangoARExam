@@ -37,6 +37,14 @@ class Order(models.Model):
     shipping_address = models.TextField(blank=True, verbose_name='Адрес за доставка')
     notes = models.TextField(blank=True, verbose_name='Бележки към поръчката')
 
+    # НОВО ПОЛЕ - обща сума на поръчката (заявена в базата данни)
+    total_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        verbose_name='Обща сума'
+    )
+
     class Meta:
         verbose_name = 'Поръчка'
         verbose_name_plural = 'Поръчки'
@@ -48,8 +56,8 @@ class Order(models.Model):
         return f"Поръчка {self.id} - {self.guest_name or 'Гост'}"
 
     @property
-    def total_amount(self):
-        """Изчислява общата сума на поръчката"""
+    def total_amount_calculated(self):
+        """Изчислява общата сума на поръчката от items (за използване при нужда)"""
         return sum(item.get_total() for item in self.items.all())
 
     @property

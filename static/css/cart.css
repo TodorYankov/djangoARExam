@@ -1,0 +1,63 @@
+/* static/css/cart.css */
+/* Стилове за количката */
+.quantity-control {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.quantity-input {
+    text-align: center;
+}
+
+.loading-spinner {
+    display: none;
+}
+
+.floating-message {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.cart-item {
+    transition: background-color 0.2s ease;
+}
+
+.cart-item:hover {
+    background-color: #f8f9fa;
+}
+
+.cart-item-image {
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.empty-cart {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 3rem;
+}
+
+.cart-summary {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1.5rem;
+    position: sticky;
+    top: 20px;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #6c757d;
+    color: white;
+}

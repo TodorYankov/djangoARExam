@@ -1,4 +1,3 @@
-# orders/forms.py
 from django import forms
 from django.forms import inlineformset_factory
 from .models import Order, OrderItem
@@ -31,8 +30,8 @@ class OrderForm(forms.ModelForm):
         }
 
 
-class OrderCreateForm(forms.ModelForm):
-    """Форма за създаване на поръчка от потребител"""
+class OrderFormForUser(forms.ModelForm):
+    """Форма за поръчка - за ОБИКНОВЕНИ ПОТРЕБИТЕЛИ (БЕЗ статус)"""
 
     class Meta:
         model = Order
@@ -54,9 +53,9 @@ class OrderCreateForm(forms.ModelForm):
             }),
         }
         labels = {
-            'shipping_address': 'Адрес за доставка',
-            'guest_phone': 'Телефон',
-            'notes': 'Бележки към поръчката',
+            'shipping_address': '📍 Адрес за доставка',
+            'guest_phone': '📞 Телефон за връзка',
+            'notes': '📝 Бележки към поръчката',
         }
         help_texts = {
             'shipping_address': 'Моля, въведете пълен адрес (град, улица, номер, етаж, вход)',
@@ -65,10 +64,14 @@ class OrderCreateForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        """Зарежда данни от профила на потребителя, ако има"""
         self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
 
+        # Маркираме задължителните полета
+        self.fields['shipping_address'].required = True
+        self.fields['guest_phone'].required = True
+
+        # Зареждаме данни от профила на потребителя, ако има
         if self.instance and self.instance.pk:
             return
 
@@ -76,12 +79,12 @@ class OrderCreateForm(forms.ModelForm):
             user = self.request.user
 
             # Попълваме адрес от профила
-            shipping_address = user.shipping_address or user.address
+            shipping_address = getattr(user, 'shipping_address', None) or getattr(user, 'address', None)
             if shipping_address and not self.initial.get('shipping_address'):
                 self.initial['shipping_address'] = shipping_address
 
             # Попълваме телефон от профила
-            if user.phone_number and not self.initial.get('guest_phone'):
+            if hasattr(user, 'phone_number') and user.phone_number and not self.initial.get('guest_phone'):
                 self.initial['guest_phone'] = user.phone_number
 
     def clean_guest_phone(self):
@@ -96,8 +99,40 @@ class OrderCreateForm(forms.ModelForm):
         return phone
 
 
+class OrderFormForStaff(forms.ModelForm):
+    """Форма за поръчка - за АДМИНИСТРАТОРИ (СЪС статус и всички полета)"""
+
+    class Meta:
+        model = Order
+        fields = ['user', 'guest_name', 'guest_email', 'guest_phone', 'status', 'shipping_address', 'notes']
+        widgets = {
+            'user': forms.Select(attrs={'class': 'form-select'}),
+            'guest_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Име'}),
+            'guest_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'имейл@пример.com'}),
+            'guest_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '0888 123 456'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),
+            'shipping_address': forms.Textarea(
+                attrs={'rows': 2, 'class': 'form-control', 'placeholder': 'Адрес за доставка'}),
+            'notes': forms.Textarea(attrs={'rows': 2, 'class': 'form-control', 'placeholder': 'Бележки към поръчката'}),
+        }
+        labels = {
+            'user': '👤 Потребител',
+            'guest_name': '📝 Име (гост)',
+            'guest_email': '📧 Имейл (гост)',
+            'guest_phone': '📞 Телефон (гост)',
+            'status': '🏷️ Статус',
+            'shipping_address': '📍 Адрес за доставка',
+            'notes': '📝 Бележки',
+        }
+
+
+class OrderCreateForm(OrderFormForUser):
+    """Форма за създаване на поръчка от потребител (наследява OrderFormForUser)"""
+    pass
+
+
 class OrderStatusForm(forms.ModelForm):
-    """Форма за обновяване на статуса на поръчка"""
+    """Форма за обновяване на статуса на поръчка - САМО ЗА STAFF"""
 
     class Meta:
         model = Order
@@ -105,6 +140,11 @@ class OrderStatusForm(forms.ModelForm):
         widgets = {
             'status': forms.Select(attrs={'class': 'form-select'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['status'].label = 'Промяна на статус'
+        self.fields['status'].help_text = 'Само администраторите могат да променят статуса на поръчката'
 
 
 class OrderItemForm(forms.ModelForm):
@@ -139,6 +179,7 @@ OrderItemFormSet = inlineformset_factory(
     can_delete=True,
     fields=['product', 'quantity', 'price_at_time']
 )
+
 
 
 

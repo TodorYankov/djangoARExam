@@ -1,6 +1,6 @@
-// static/js/scripts.js - TechShop Оптимизиран JavaScript
+// static/js/scripts.js - TechShop Optimized JavaScript
 
-/* ========== UTILITY ФУНКЦИИ ========== */
+/* ========== UTILITY FUNCTIONS ========== */
 const U = {
     isMob: () => /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent),
     capitalize: s => s ? s.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) : '',
@@ -29,7 +29,7 @@ const U = {
     }
 };
 
-/* ========== ОБЩИ ФУНКЦИИ ========== */
+/* ========== COMMON FUNCTIONS ========== */
 const Common = {
     initScrollAnimation() {
         const elements = document.querySelectorAll('.fade-in, .category-card, .order-row, .stats-card');
@@ -91,7 +91,7 @@ const Common = {
     }
 };
 
-/* ========== ФОРМУЛЯРИ ========== */
+/* ========== FORMS ========== */
 const Forms = {
     validateField(field) {
         const value = field.value.trim();
@@ -170,7 +170,251 @@ const Forms = {
     }
 };
 
-/* ========== ПРОДУКТИ ========== */
+/* ========== CART FUNCTIONS ========== */
+
+// Get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Update quantity
+function updateQuantity(productId, newQuantity) {
+    const row = document.querySelector(`.cart-item[data-product-id="${productId}"]`);
+    if (!row) return;
+
+    const input = row.querySelector('.quantity-input');
+    const spinner = row.querySelector('.loading-spinner');
+    const decreaseBtn = row.querySelector('.btn-decrease');
+    const increaseBtn = row.querySelector('.btn-increase');
+
+    if (spinner) spinner.style.display = 'inline-block';
+    if (decreaseBtn) decreaseBtn.disabled = true;
+    if (increaseBtn) increaseBtn.disabled = true;
+    if (input) input.disabled = true;
+
+    fetch(`/orders/cart/update/${productId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `quantity=${newQuantity}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (input) {
+                input.value = data.quantity;
+                input.defaultValue = data.quantity;
+            }
+
+            const price = parseFloat(row.dataset.price);
+            const itemTotal = price * data.quantity;
+            const subtotalElement = row.querySelector('.item-subtotal');
+            if (subtotalElement) {
+                subtotalElement.textContent = itemTotal.toFixed(2) + ' €';
+            }
+
+            updateCartSummary();
+            updateCartCount();
+            showMessage('Количеството беше обновено успешно', 'success');
+        } else {
+            showMessage('Грешка: ' + (data.error || 'Неуспешна актуализация'), 'danger');
+            if (input) input.value = input.defaultValue;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showMessage('Възникна грешка. Моля, опитайте отново.', 'danger');
+        if (input) input.value = input.defaultValue;
+    })
+    .finally(() => {
+        if (spinner) spinner.style.display = 'none';
+        if (decreaseBtn) decreaseBtn.disabled = false;
+        if (increaseBtn) increaseBtn.disabled = false;
+        if (input) input.disabled = false;
+    });
+}
+
+// Remove from cart
+function removeFromCart(productId) {
+    if (!confirm('Сигурни ли сте, че искате да премахнете този продукт?')) return;
+
+    fetch(`/orders/cart/remove/${productId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const row = document.querySelector(`.cart-item[data-product-id="${productId}"]`);
+            if (row) row.remove();
+            updateCartSummary();
+            updateCartCount();
+
+            if (document.querySelectorAll('.cart-item').length === 0) {
+                location.reload();
+            }
+            showMessage('Продуктът беше премахнат от количката', 'success');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showMessage('Грешка при премахване на продукта', 'danger');
+    });
+}
+
+// Update cart summary
+function updateCartSummary() {
+    const items = document.querySelectorAll('.cart-item');
+    let totalQuantity = 0;
+    let totalAmount = 0;
+
+    items.forEach(item => {
+        const quantity = parseInt(item.querySelector('.quantity-input')?.value || 0);
+        const price = parseFloat(item.dataset.price || 0);
+        totalQuantity += quantity;
+        totalAmount += price * quantity;
+    });
+
+    const itemsCountElem = document.getElementById('summary-items-count');
+    const totalQuantityElem = document.getElementById('summary-total-quantity');
+    const cartTotalElem = document.getElementById('cart-total');
+
+    if (itemsCountElem) itemsCountElem.textContent = items.length;
+    if (totalQuantityElem) totalQuantityElem.textContent = totalQuantity;
+    if (cartTotalElem) cartTotalElem.textContent = totalAmount.toFixed(2) + ' €';
+
+    const shippingMsg = document.getElementById('shipping-message');
+    if (shippingMsg && totalAmount < 100) {
+        shippingMsg.innerHTML = `
+            <div class="alert alert-info small mb-3">
+                <i class="fas fa-truck me-2"></i>
+                Добавете още <strong>${(100 - totalAmount).toFixed(2)} €</strong> за безплатна доставка!
+            </div>
+        `;
+    } else if (shippingMsg && totalAmount >= 100) {
+        shippingMsg.innerHTML = `
+            <div class="alert alert-success small mb-3">
+                <i class="fas fa-truck me-2"></i>
+                Безплатна доставка! 🎉
+            </div>
+        `;
+    }
+}
+
+// Show message
+function showMessage(message, type) {
+    let msgDiv = document.querySelector('.floating-message');
+    if (msgDiv) msgDiv.remove();
+
+    msgDiv = document.createElement('div');
+    msgDiv.className = `floating-message alert alert-${type} alert-dismissible fade show`;
+    msgDiv.style.position = 'fixed';
+    msgDiv.style.top = '20px';
+    msgDiv.style.right = '20px';
+    msgDiv.style.zIndex = '9999';
+    msgDiv.style.minWidth = '300px';
+    msgDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(msgDiv);
+
+    setTimeout(() => msgDiv.remove(), 3000);
+}
+
+// Initialize cart handlers
+function initCartHandlers() {
+    if (!window.location.pathname.includes('/orders/cart/')) return;
+
+    document.querySelectorAll('.btn-increase').forEach(btn => {
+        btn.removeEventListener('click', handleIncrease);
+        btn.addEventListener('click', handleIncrease);
+    });
+
+    document.querySelectorAll('.btn-decrease').forEach(btn => {
+        btn.removeEventListener('click', handleDecrease);
+        btn.addEventListener('click', handleDecrease);
+    });
+
+    document.querySelectorAll('.quantity-input').forEach(input => {
+        input.removeEventListener('change', handleQuantityChange);
+        input.addEventListener('change', handleQuantityChange);
+    });
+
+    document.querySelectorAll('.btn-remove').forEach(btn => {
+        btn.removeEventListener('click', handleRemove);
+        btn.addEventListener('click', handleRemove);
+    });
+}
+
+// Handler functions
+function handleIncrease(e) {
+    const productId = parseInt(this.dataset.id);
+    const input = document.querySelector(`.quantity-input[data-id="${productId}"]`);
+    if (input) {
+        const newValue = parseInt(input.value) + 1;
+        updateQuantity(productId, newValue);
+    }
+}
+
+function handleDecrease(e) {
+    const productId = parseInt(this.dataset.id);
+    const input = document.querySelector(`.quantity-input[data-id="${productId}"]`);
+    if (input && parseInt(input.value) > 1) {
+        const newValue = parseInt(input.value) - 1;
+        updateQuantity(productId, newValue);
+    }
+}
+
+function handleQuantityChange(e) {
+    const productId = parseInt(this.dataset.id);
+    let newValue = parseInt(this.value);
+    if (isNaN(newValue) || newValue < 1) newValue = 1;
+    if (newValue > 99) newValue = 99;
+    updateQuantity(productId, newValue);
+}
+
+function handleRemove(e) {
+    const productId = parseInt(this.dataset.id);
+    removeFromCart(productId);
+}
+
+// Update cart count in navbar
+function updateCartCount() {
+    fetch('/orders/cart/api/')
+        .then(response => response.json())
+        .then(data => {
+            const cartCountElement = document.getElementById('cart-count');
+            if (cartCountElement) {
+                if (data.cart_count > 0) {
+                    cartCountElement.textContent = data.cart_count;
+                    cartCountElement.style.display = 'inline-block';
+                } else {
+                    cartCountElement.style.display = 'none';
+                }
+            }
+        })
+        .catch(error => console.error('Грешка при обновяване на количката:', error));
+}
+
+/* ========== PRODUCTS ========== */
 const Products = {
     init() {
         const imageInput = document.getElementById('id_image') || document.getElementById('id_profile_picture');
@@ -208,36 +452,10 @@ const Products = {
         }
 
         Forms.initFormValidation('productForm');
-        this.initAddToCartButtons();
-    },
-
-    initAddToCartButtons() {
-        const addToCartButtons = document.querySelectorAll('.add-to-cart-btn, .add-to-cart-form');
-        addToCartButtons.forEach(button => {
-            if (button.classList.contains('add-to-cart-form')) {
-                button.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const productId = this.dataset.productId;
-                    const quantity = this.querySelector('input[name="quantity"]')?.value || 1;
-                    if (typeof addToCart === 'function') {
-                        addToCart(productId, quantity);
-                    }
-                });
-            } else if (button.classList.contains('add-to-cart-btn')) {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const productId = this.dataset.productId;
-                    const quantity = this.dataset.quantity || 1;
-                    if (typeof addToCart === 'function') {
-                        addToCart(productId, quantity);
-                    }
-                });
-            }
-        });
     }
 };
 
-/* ========== ПОРЪЧКИ ========== */
+/* ========== ORDERS ========== */
 const Orders = {
     init() {
         const statusFilter = document.getElementById('statusFilter');
@@ -265,223 +483,7 @@ const Orders = {
 
         this.initOrderFormset();
         Forms.initFormValidation('orderForm');
-        this.initCartHandlers();
-        this.initOrderFormHandlers();
-    },
-
-    initOrderFormHandlers() {
-        if (window.location.pathname.includes('/orders/create/')) {
-            const shippingAddressField = document.querySelector('textarea[name="shipping_address"]');
-            const phoneField = document.querySelector('input[name="guest_phone"]');
-
-            if (shippingAddressField && phoneField) {
-                const hasAddress = shippingAddressField.value.trim();
-                const hasPhone = phoneField.value.trim();
-
-                if (!hasAddress && !hasPhone) {
-                    setTimeout(() => {
-                        if (!document.getElementById('profileDataModal')) {
-                            const modalHtml = `
-                                <div class="modal fade" id="profileDataModal" tabindex="-1" data-bs-backdrop="static">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <div class="modal-header bg-warning">
-                                                <h5 class="modal-title">
-                                                    <i class="fas fa-info-circle me-2"></i>
-                                                    За по-лесно пазаруване
-                                                </h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <div class="text-center mb-3">
-                                                    <i class="fas fa-user-edit fa-4x text-warning"></i>
-                                                </div>
-                                                <p>За да улесните поръчките си в бъдеще, моля, попълнете в профила:</p>
-                                                <ul class="list-unstyled">
-                                                    <li class="mb-2">
-                                                        <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                                                        <strong>Адрес за доставка</strong> - улица, номер, вход, етаж
-                                                    </li>
-                                                    <li class="mb-2">
-                                                        <i class="fas fa-phone text-primary me-2"></i>
-                                                        <strong>Телефон</strong> - за връзка при доставка
-                                                    </li>
-                                                </ul>
-                                                <div class="alert alert-info small mt-3 mb-0">
-                                                    <i class="fas fa-info-circle me-1"></i>
-                                                    Можете да въведете данни директно в тази форма за текущата поръчка.
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <a href="/accounts/profile/" class="btn btn-warning">
-                                                    <i class="fas fa-edit me-1"></i>
-                                                    Към профила за попълване
-                                                </a>
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                    <i class="fas fa-times me-1"></i>
-                                                    Затвори
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                            document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-                            const modal = new bootstrap.Modal(document.getElementById('profileDataModal'));
-                            modal.show();
-
-                            localStorage.setItem('profileDataModalShown', 'true');
-                        }
-                    }, 1000);
-                }
-            }
-
-            const phoneInput = document.querySelector('input[name="guest_phone"]');
-            if (phoneInput) {
-                phoneInput.addEventListener('input', function(e) {
-                    let value = e.target.value.replace(/\D/g, '');
-                    if (value.length > 0) {
-                        if (value.length <= 3) {
-                            value = value;
-                        } else if (value.length <= 6) {
-                            value = value.slice(0, 3) + ' ' + value.slice(3);
-                        } else {
-                            value = value.slice(0, 3) + ' ' + value.slice(3, 6) + ' ' + value.slice(6, 10);
-                        }
-                        e.target.value = value;
-                    }
-                });
-            }
-
-            const orderForm = document.getElementById('orderForm');
-            if (orderForm) {
-                orderForm.addEventListener('submit', function(e) {
-                    const address = document.querySelector('textarea[name="shipping_address"]')?.value.trim();
-                    const phone = document.querySelector('input[name="guest_phone"]')?.value.trim();
-
-                    if (!address) {
-                        e.preventDefault();
-                        U.alert('Моля, въведете адрес за доставка.', 'warning');
-                        document.querySelector('textarea[name="shipping_address"]')?.focus();
-                        return false;
-                    }
-
-                    if (!phone) {
-                        e.preventDefault();
-                        U.alert('Моля, въведете телефон за връзка.', 'warning');
-                        document.querySelector('input[name="guest_phone"]')?.focus();
-                        return false;
-                    }
-
-                    // Вземи правилната обща сума
-                    let totalText = '';
-                    const orderTotal = document.getElementById('order-total');
-                    if (orderTotal) {
-                        totalText = orderTotal.innerText;
-                    } else {
-                        const summaryTotal = document.querySelector('.order-summary .text-primary.fw-bold');
-                        totalText = summaryTotal ? summaryTotal.innerText : '';
-                    }
-
-                    if (U.confirm('Сигурни ли сте, че искате да потвърдите поръчката на стойност ' + totalText + '?')) {
-                        return true;
-                    }
-
-                    e.preventDefault();
-                    return false;
-                });
-            }
-        }
-    },
-
-    initCartHandlers() {
-        if (!window.location.pathname.includes('/orders/cart/')) return;
-
-        const updateForms = document.querySelectorAll('.update-cart-form');
-        updateForms.forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                const productId = this.dataset.productId;
-                const quantityInput = this.querySelector('input[name="quantity"]');
-                const quantity = quantityInput ? quantityInput.value : 1;
-
-                fetch(`/orders/cart/update/${productId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': cartConfig.csrfToken || window.djangoData?.csrfToken || '',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: new URLSearchParams({ quantity: quantity })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        updateCartCount();
-                        if (window.location.pathname === '/orders/') {
-                            fetchStatistics();
-                        }
-                        U.alert('Количеството беше обновено успешно.', 'success');
-                    } else {
-                        U.alert('Възникна грешка при обновяването.', 'danger');
-                    }
-                })
-                .catch(error => {
-                    console.error('Грешка при обновяване:', error);
-                    U.alert('Възникна грешка. Моля, опитайте отново.', 'danger');
-                });
-            });
-        });
-
-        const removeForms = document.querySelectorAll('.remove-from-cart');
-        removeForms.forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                const productId = this.dataset.productId;
-                if (!productId) {
-                    console.error('Product ID not found!');
-                    return;
-                }
-
-                if (U.confirm('Сигурни ли сте, че искате да премахнете този продукт?')) {
-                    fetch(this.action, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': cartConfig.csrfToken || window.djangoData?.csrfToken || '',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.success) {
-                            updateCartCount();
-                            if (window.location.pathname === '/orders/') {
-                                fetchStatistics();
-                            }
-                            U.alert('Продуктът беше премахнат от количката.', 'success');
-                        } else {
-                            U.alert('Възникна грешка при премахване.', 'danger');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Грешка при премахване:', error);
-                        U.alert('Възникна грешка. Моля, опитайте отново.', 'danger');
-                    });
-                }
-            });
-        });
+        initCartHandlers();
     },
 
     initOrderFormset() {
@@ -523,7 +525,7 @@ const Orders = {
     }
 };
 
-/* ========== ПОТРЕБИТЕЛИ ========== */
+/* ========== ACCOUNTS ========== */
 const Accounts = {
     init() {
         const phoneInput = document.querySelector('input[name="phone_number"]');
@@ -571,110 +573,7 @@ const ScrollToTop = {
     }
 };
 
-/* ========== ФУНКЦИИ ЗА КОЛИЧКАТА ========== */
-const djangoData = window.djangoData || {};
-
-const cartConfig = {
-    csrfToken: djangoData.csrfToken || '',
-    cartApiUrl: djangoData.cartApiUrl || '/orders/cart/api/',
-    addToCartUrl: djangoData.addToCartUrl || '/orders/add-to-cart/'
-};
-
-/**
- * Обновява статистиката на страницата с поръчки без презареждане
- */
-function fetchStatistics() {
-    fetch('/orders/stats/api/')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            const totalOrdersEl = document.getElementById('total-orders');
-            const pendingOrdersEl = document.getElementById('pending-orders');
-            const totalRevenueEl = document.getElementById('total-revenue');
-            const avgOrderValueEl = document.getElementById('avg-order-value');
-
-            if (totalOrdersEl) totalOrdersEl.textContent = data.total_orders;
-            if (pendingOrdersEl) pendingOrdersEl.textContent = data.pending_orders;
-            if (totalRevenueEl) totalRevenueEl.textContent = data.total_revenue.toFixed(2) + ' €';
-            if (avgOrderValueEl) avgOrderValueEl.textContent = data.avg_order_value.toFixed(2) + ' €';
-        })
-        .catch(error => console.error('Грешка при обновяване на статистиката:', error));
-}
-
-/**
- * Обновява броя на артикулите в количката
- */
-function updateCartCount() {
-    fetch(cartConfig.cartApiUrl)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            const cartCountElement = document.getElementById('cart-count');
-            if (cartCountElement) {
-                if (data.cart_count > 0) {
-                    cartCountElement.textContent = data.cart_count;
-                    cartCountElement.style.display = 'inline-block';
-                } else {
-                    cartCountElement.style.display = 'none';
-                }
-            }
-
-            if (window.location.pathname === '/orders/') {
-                fetchStatistics();
-            }
-        })
-        .catch(error => console.error('Грешка при обновяване на количката:', error));
-}
-
-/**
- * Добавя продукт в количката чрез AJAX
- * @param {number} productId - ID на продукта
- * @param {number} quantity - Количество (по подразбиране 1)
- */
-function addToCart(productId, quantity = 1) {
-    const url = `${cartConfig.addToCartUrl}${productId}/`;
-
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': cartConfig.csrfToken,
-            'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: JSON.stringify({ quantity: Number(quantity) })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            updateCartCount();
-            if (window.location.pathname === '/orders/') {
-                fetchStatistics();
-            }
-            U.alert(data.message || 'Продуктът беше добавен в количката!', 'success');
-        } else {
-            U.alert('Възникна грешка при добавянето на продукта.', 'danger');
-        }
-    })
-    .catch(error => {
-        console.error('Грешка при добавяне в количката:', error);
-        U.alert('Възникна грешка. Моля, опитайте отново.', 'danger');
-    });
-}
-
-/* ========== ИНИЦИАЛИЗАЦИЯ ========== */
+/* ========== INITIALIZATION ========== */
 function initAll() {
     Common.initScrollAnimation();
     Common.initDeleteConfirmation();
@@ -698,17 +597,6 @@ function initAll() {
 
     ScrollToTop.init();
     updateCartCount();
-
-    if (window.location.pathname === '/orders/') {
-        fetchStatistics();
-    }
-
-    window.addEventListener('cartUpdated', function() {
-        updateCartCount();
-        if (window.location.pathname === '/orders/') {
-            fetchStatistics();
-        }
-    });
 }
 
 document.addEventListener('DOMContentLoaded', initAll);

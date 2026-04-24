@@ -1,15 +1,26 @@
 # products/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.db.models import Q
 from django.urls import reverse_lazy
 from .models import Product, Category
 from .forms import ProductForm, CategoryForm
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.admin.views.decorators import staff_member_required
 
 
+# Помощна функция за проверка дали потребителят е staff
+def staff_required(user):
+    return user.is_staff
+
+
+# ========== ФУНКЦИОНАЛНИ ИЗГЛЕДИ (FBV) ==========
+
+@staff_member_required
 def product_create(request):
+    """Създаване на нов продукт - само за staff"""
     # Проверка за категории
     categories_exist = Category.objects.exists()
 
@@ -36,7 +47,9 @@ def product_create(request):
     return render(request, 'products/product_form.html', context)
 
 
+@staff_member_required
 def product_update(request, pk):
+    """Редактиране на продукт - само за staff"""
     product = get_object_or_404(Product, pk=pk)
     categories_exist = Category.objects.exists()
 
@@ -60,7 +73,9 @@ def product_update(request, pk):
     return render(request, 'products/product_form.html', context)
 
 
+@staff_member_required
 def edit_product(request, pk):
+    """Редактиране на продукт - само за staff (алтернативен изглед)"""
     product = get_object_or_404(Product, pk=pk)
     categories_exist = Category.objects.exists()
 
@@ -85,6 +100,8 @@ def edit_product(request, pk):
         'submit_text': 'Запази промените',
     })
 
+
+# ========== КЛАСОВИ ИЗГЛЕДИ (CBV) ==========
 
 class ProductListView(ListView):
     model = Product
@@ -111,9 +128,7 @@ class ProductListView(ListView):
         if product_type:
             queryset = queryset.filter(product_type=product_type)
 
-        # 3. Филтър по марка
-
-        # 4. Филтър по минимална цена
+        # 3. Филтър по минимална цена
         min_price = self.request.GET.get('min_price')
         if min_price:
             try:
@@ -121,7 +136,7 @@ class ProductListView(ListView):
             except (ValueError, TypeError):
                 pass
 
-        # 5. Филтър по максимална цена
+        # 4. Филтър по максимална цена
         max_price = self.request.GET.get('max_price')
         if max_price:
             try:
@@ -129,14 +144,14 @@ class ProductListView(ListView):
             except (ValueError, TypeError):
                 pass
 
-        # 6. Филтър по наличност
+        # 5. Филтър по наличност
         in_stock = self.request.GET.get('in_stock')
         if in_stock == 'yes':
             queryset = queryset.filter(stock_quantity__gt=0)
         elif in_stock == 'no':
             queryset = queryset.filter(stock_quantity=0)
 
-        # 7. Търсене
+        # 6. Търсене
         search_query = self.request.GET.get('search')
         if search_query:
             queryset = queryset.filter(
@@ -145,7 +160,7 @@ class ProductListView(ListView):
                 Q(category__name__icontains=search_query)
             )
 
-        # 8. Сортиране
+        # 7. Сортиране
         sort_by = self.request.GET.get('sort', '-created_at')
         if sort_by in ['price', '-price', 'name', '-name', 'created_at', '-created_at', 'stock_quantity',
                        '-stock_quantity']:
@@ -206,11 +221,15 @@ class ProductDetailView(DetailView):
         return context
 
 
-class ProductCreateView(CreateView):
+class ProductCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    """Създаване на продукт - само за staff"""
     model = Product
     form_class = ProductForm
     template_name = 'products/product_form.html'
     success_url = reverse_lazy('products:product_list')
+
+    def test_func(self):
+        return self.request.user.is_staff
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -237,10 +256,14 @@ class ProductCreateView(CreateView):
         return response
 
 
-class ProductUpdateView(UpdateView):
+class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """Редактиране на продукт - само за staff"""
     model = Product
     form_class = ProductForm
     template_name = 'products/product_form.html'
+
+    def test_func(self):
+        return self.request.user.is_staff
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -256,9 +279,13 @@ class ProductUpdateView(UpdateView):
         return reverse_lazy('products:product_detail', kwargs={'pk': self.object.pk})
 
 
-class ProductDeleteView(DeleteView):
+class ProductDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """Изтриване на продукт - само за staff"""
     model = Product
     template_name = 'products/product_confirm_delete.html'
+
+    def test_func(self):
+        return self.request.user.is_staff
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -270,6 +297,8 @@ class ProductDeleteView(DeleteView):
         messages.success(self.request, 'Продуктът беше изтрит успешно')
         return reverse_lazy('products:product_list')
 
+
+# ========== КАТЕГОРИИ ==========
 
 class CategoryListView(ListView):
     model = Category
@@ -307,11 +336,15 @@ class CategoryListView(ListView):
         return context
 
 
-class CategoryCreateView(CreateView):
+class CategoryCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    """Създаване на категория - само за staff"""
     model = Category
     form_class = CategoryForm
     template_name = 'products/category_form.html'
     success_url = reverse_lazy('products:category_list')
+
+    def test_func(self):
+        return self.request.user.is_staff
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -320,11 +353,15 @@ class CategoryCreateView(CreateView):
         return context
 
 
-class CategoryUpdateView(UpdateView):
+class CategoryUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """Редактиране на категория - само за staff"""
     model = Category
     form_class = CategoryForm
     template_name = 'products/category_form.html'
     success_url = reverse_lazy('products:category_list')
+
+    def test_func(self):
+        return self.request.user.is_staff
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -333,10 +370,14 @@ class CategoryUpdateView(UpdateView):
         return context
 
 
-class CategoryDeleteView(DeleteView):
+class CategoryDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """Изтриване на категория - само за staff"""
     model = Category
     template_name = 'products/category_confirm_delete.html'
     success_url = reverse_lazy('products:category_list')
+
+    def test_func(self):
+        return self.request.user.is_staff
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -361,8 +402,11 @@ class CategoryDeleteView(DeleteView):
         return super().post(request, *args, **kwargs)
 
 
+# ========== СТАТИСТИКИ И ЕКСПОРТ ==========
+
+@staff_member_required
 def product_stats(request):
-    """Статистика за продуктите"""
+    """Статистика за продуктите - само за staff"""
     total_products = Product.objects.count()
     available_products = Product.objects.filter(is_available=True).count()
     out_of_stock = Product.objects.filter(stock_quantity=0).count()
@@ -374,9 +418,18 @@ def product_stats(request):
         if count > 0:
             products_by_category[category.name] = count
 
+    context = {
+        'total_products': total_products,
+        'available_products': available_products,
+        'out_of_stock': out_of_stock,
+        'products_by_category': products_by_category,
+    }
+    return render(request, 'products/product_stats.html', context)
 
+
+@staff_member_required
 def export_products_csv(request):
-    """Експорт на продукти в CSV формат"""
+    """Експорт на продукти в CSV формат - само за staff"""
     import csv
     from django.http import HttpResponse
 
@@ -394,13 +447,12 @@ def export_products_csv(request):
         writer.writerow([
             product.id,
             product.name,
-            product.description[:100],  # Само първите 100 символа
+            product.description[:100] if product.description else '',  # Само първите 100 символа
             product.price,
             product.category.name if product.category else '',
             product.get_product_type_display(),
             product.stock_quantity,
-            product.created_at.strftime('%d.%m.%Y %H:%M')
+            product.created_at.strftime('%d.%m.%Y %H:%M') if product.created_at else '',
         ])
 
     return response
-
